@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const ChoiceCheckbox = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const ChoiceCheckbox = ({ question, value, onChange }: Props) => {
   return (
     <div>ChoiceCheckbox</div>
   )

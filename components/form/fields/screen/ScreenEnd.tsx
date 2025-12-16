@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const ScreenEnd = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const ScreenEnd = ({ question, value, onChange }: Props) => {
   return (
     <div>ScreenEnd</div>
   )

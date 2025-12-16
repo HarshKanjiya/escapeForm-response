@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const Leagal = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const Leagal = ({ question, value, onChange }: Props) => {
   return (
     <div>Leagal</div>
   )

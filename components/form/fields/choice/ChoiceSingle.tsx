@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const ChoiceSingle = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const ChoiceSingle = ({ question, value, onChange }: Props) => {
   return (
     <div>ChoiceSingle</div>
   )

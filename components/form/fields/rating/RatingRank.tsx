@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const RatingRank = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const RatingRank = ({ question, value, onChange }: Props) => {
   return (
     <div>RatingRank</div>
   )

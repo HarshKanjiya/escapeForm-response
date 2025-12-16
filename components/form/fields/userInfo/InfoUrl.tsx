@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const InfoUrl = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const InfoUrl = ({ question, value, onChange }: Props) => {
   return (
     <div>InfoUrl</div>
   )

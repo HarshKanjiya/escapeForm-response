@@ -1,6 +1,12 @@
-import React from 'react'
+import { Question } from "@prisma/client"
 
-const ScreenWelcome = () => {
+interface Props {
+  question: Question,
+  value?: any,
+  onChange?: (value: string) => void,
+}
+
+const ScreenWelcome = ({ question, value, onChange }: Props) => {
   return (
     <div>ScreenWelcome</div>
   )
