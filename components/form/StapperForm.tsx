@@ -1,5 +1,12 @@
+import { FormWithQuestionsAndEdges } from "@/types/common"
 
-const StapperForm = () => {
+
+
+interface StapperFormProps {
+  form: FormWithQuestionsAndEdges
+}
+
+const StapperForm = ({ form }: StapperFormProps) => {
   return (
     <div>StapperForm</div>
   )

@@ -1,5 +1,7 @@
 // Common response types for server actions
 
+import { Form, Question } from "@prisma/client"
+
 export interface ActionResponse<T = unknown> {
     success: boolean
     data?: T
@@ -49,4 +51,9 @@ export interface CountryOption {
     dialCode: string; // +1, +91 etc
     name: string;
     flag: string; // Emoji flag
+}
+
+export type FormWithQuestionsAndEdges = Form & {
+    questions: Question[];
+    edges: any[];
 }

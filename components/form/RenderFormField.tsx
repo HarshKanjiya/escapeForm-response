@@ -28,6 +28,7 @@ interface Props {
     question: Question,
     value?: any,
     onChange?: (value: any) => void,
+    error?: string[]
 }
 
 const RenderFormField = (props: Props) => {
