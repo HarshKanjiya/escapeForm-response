@@ -20,6 +20,7 @@ export interface DatePickerProps {
     dateFormat?: string
     disabled?: boolean
     className?: string
+    triggerClass?: string
     minDate?: Date
     maxDate?: Date
 }
@@ -33,6 +34,7 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
             dateFormat = "MM/dd/yyyy",
             disabled = false,
             className,
+            triggerClass,
             minDate,
             maxDate,
             ...props
@@ -70,7 +72,7 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
                             ref={ref}
                             variant="outline"
                             disabled={disabled}
-                            className="justify-between font-normal"
+                            className={cn("justify-between font-normal", triggerClass)}
                             {...props}
                         >
                             <span className="flex items-center gap-2">

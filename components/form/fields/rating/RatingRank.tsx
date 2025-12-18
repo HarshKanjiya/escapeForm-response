@@ -1,4 +1,4 @@
-import { Question } from "@prisma/client"
+import { Question } from '@/types/common'
 
 interface Props {
   question: Question,

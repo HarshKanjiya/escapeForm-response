@@ -1,12 +1,13 @@
 "use client";
 
-import { FormWithQuestionsAndEdges } from "@/types/common";
-import { Question } from "@prisma/client";
+import { FormWithQuestionsAndEdges, Question } from "@/types/common";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
-import RenderFormField from "./RenderFormField";
 import { Button } from "../ui/button";
+import { ScrollArea } from "../ui/scroll-area";
+import RenderFormField from "./RenderFormField";
 import SignInRequired from "./SignInRequired";
+import Image from "next/image";
 
 interface SinglePageFormProps {
   form: FormWithQuestionsAndEdges
@@ -98,7 +99,7 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
 
   const completeSubmission = () => {
     console.log('Form submitted:', dataSource);
-    
+
     // Log user info if signed in
     if (session?.user) {
       console.log('User submitting form:', {
@@ -109,7 +110,7 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
         // responseId will be generated when saving to database
       });
     }
-    
+
     setFormCompleted(true);
     setPendingSubmit(false);
     // Handle form submission here
@@ -137,7 +138,7 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
     setDataSource({});
     setErrors({});
     setFormCompleted(false);
-    
+
     // If welcome screen exists, go back to it, otherwise stay in form
     if (welcomeScreen) {
       setFormStarted(false);
@@ -205,31 +206,55 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
   }
 
   return (
-    <div className="p-6 h-full w-full">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          {questions.map((q) =>
-            <RenderFormField
-              key={q.id}
-              question={q}
-              onChange={(v) => handleFieldChange(q.id, v)}
-              value={dataSource[q.id]}
-              error={errors[q.id]}
-            />
-          )}
-
-          {questions.length > 0 && (
-            <div className="pt-6 border-t">
-              <Button
-                type="submit"
-                size={metaData.actionBtnSize || 'default'}
-              >
-                {metaData.submitBtnLabel || 'Submit Form'}
-              </Button>
+    <div className="h-full w-full flex flex-col">
+      <ScrollArea className="flex-1 h-full pr-8 py-4">
+        <div className="mx-auto">
+          <div className="px-2">
+            <div className="py-6 flex gap-6 justify-start p-4 px-6 rounded-xl bg-white border-l-12 border-primary">
+              <div className="flex items-center justify-center overflow-hidden corner-squircle rounded-4xl aspect-square h-fit w-fit">
+                <Image
+                  src={form.logoUrl || '/logo-light.svg'}
+                  alt="Form logo"
+                  width={60}
+                  height={60}
+                  className="object-contain rounded-lg"
+                  quality={100}
+                  priority
+                  unoptimized={false}
+                />
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold ">{form.name}</h1>
+                <span className="text-accent-foreground text-sm">{form.description}</span>
+              </div>
             </div>
-          )}
-        </form>
-      </div>
+          </div>
+          <form className="space-y-2" onSubmit={handleSubmit}>
+            {questions.map((q) =>
+              <RenderFormField
+                key={q.id}
+                question={q}
+                onChange={(v) => handleFieldChange(q.id, v)}
+                value={dataSource[q.id]}
+                error={errors[q.id]}
+              />
+            )}
+
+            {questions.length > 0 && (
+              <div className="py-6 mt-8 border-t border-border/40">
+                <div className="flex justify-center sm:justify-start">
+                  <Button
+                    type="submit"
+                    size={metaData.actionBtnSize || 'default'}
+                  >
+                    {metaData.submitBtnLabel || 'Submit Form'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
+      </ScrollArea>
     </div>
   )
 }

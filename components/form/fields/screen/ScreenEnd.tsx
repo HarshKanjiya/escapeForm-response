@@ -1,4 +1,4 @@
-import { Question } from "@prisma/client"
+import { Question } from '@/types/common'
 import { Button } from "@/components/ui/button"
 import { CheckCircle2Icon, RefreshCwIcon } from "lucide-react"
 

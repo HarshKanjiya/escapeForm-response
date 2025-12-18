@@ -26,8 +26,10 @@ const Page = async ({ params }: PageProps) => {
     }
 
     if (form.formPageType === FormPageType.SINGLE) {
+        // @ts-expect-error TS2322
         return <SinglePageForm form={form} />
     } else {
+        // @ts-expect-error TS2322
         return <StapperForm form={form} />
     }
 

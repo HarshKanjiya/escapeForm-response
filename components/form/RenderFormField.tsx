@@ -1,4 +1,5 @@
-import { Question, QuestionType, Form } from '@prisma/client'
+import { Question } from '@/types/common'
+import { Form, QuestionType } from '@prisma/client'
 import Date from './fields/basic/Date'
 import Leagal from './fields/basic/Leagal'
 import Number from './fields/basic/Number'

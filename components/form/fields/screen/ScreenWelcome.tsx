@@ -1,6 +1,7 @@
-import { Question, Form } from "@prisma/client"
 import { Button } from "@/components/ui/button"
-import { ArrowRightIcon, FilesIcon, FileTextIcon } from "lucide-react"
+import { Question } from '@/types/common'
+import { Form } from "@prisma/client"
+import { ArrowRightIcon } from "lucide-react"
 import Image from "next/image"
 
 interface Props {
