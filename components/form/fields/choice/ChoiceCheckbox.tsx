@@ -8,132 +8,141 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
+  error?: string[]
 }
 
-const ChoiceCheckbox = ({ question, value, onChange }: Props) => {
+const ChoiceCheckbox = ({ question, value, onChange, error }: Props) => {
 
-  const [selectedOptions, setSelectedOptions] = useState<string[]>(value || []);
-  const [errors, _] = useState<string[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>(
+    Array.isArray(value) ? value : []
+  );
+
+  const options = question.options || [];
+  const metadata = question.metadata || {};
+  const minSelections = typeof metadata.min === 'number' ? metadata.min : undefined;
+  const maxSelections = typeof metadata.max === 'number' ? metadata.max : undefined;
 
   // Update internal state when external value changes
   useEffect(() => {
-    if (value !== undefined) {
+    if (Array.isArray(value)) {
       setSelectedOptions(value);
     }
   }, [value]);
 
-  const handleOptionChange = (option: string, checked: boolean) => {
+  const handleOptionChange = (optionValue: string, checked: boolean) => {
     let newSelectedOptions: string[];
 
     if (checked) {
-      newSelectedOptions = [...selectedOptions, option];
+      // Check max limit before adding
+      if (maxSelections && selectedOptions.length >= maxSelections) {
+        return;
+      }
+      newSelectedOptions = [...selectedOptions, optionValue];
     } else {
-      newSelectedOptions = selectedOptions.filter(item => item !== option);
+      newSelectedOptions = selectedOptions.filter(item => item !== optionValue);
     }
 
     setSelectedOptions(newSelectedOptions);
     onChange?.(newSelectedOptions);
   };
 
+  const hasError = error && error.length > 0;
+
   return (
-    <div className="w-full space-y-4 p-4">
-      <div className="space-y-2">
+    <div className="w-full space-y-4 p-2 pb-5">
+      <div className="py-2">
         <Label
           className={cn(
-            "text-lg font-semibold text-foreground leading-relaxed block",
-            question.required && "after:content-['*'] after:text-destructive after:ml-1"
+            "font-medium text-foreground text-xl",
+            question.required && "after:content-['*'] after:text-destructive"
           )}
         >
           {question.title}
         </Label>
 
         {question.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-md text-muted-foreground italic py-1 mt-2">
             {question.description}
+          </p>
+        )}
+
+        {(minSelections || maxSelections) && (
+          <p className="text-sm text-muted-foreground mt-2">
+            {minSelections && maxSelections
+              ? `Select between ${minSelections} and ${maxSelections} options`
+              : minSelections
+                ? `Select at least ${minSelections} option${minSelections > 1 ? 's' : ''}`
+                : maxSelections
+                  ? `Select up to ${maxSelections} option${maxSelections > 1 ? 's' : ''}`
+                  : null}
           </p>
         )}
       </div>
 
       <div className="space-y-3">
-        {question?.options && question?.options?.length > 0 ? (
-          <div className="space-y-3">
-            {question.options.map((option, index) => {
-              const isChecked = selectedOptions.includes(option.value);
-              return (
-                <div
-                  key={index}
+        {options.length > 0 ? (
+          options.map((option, index) => {
+            const isChecked = selectedOptions.includes(option.value);
+            const isMaxReached = maxSelections ? selectedOptions.length >= maxSelections : false;
+            const isDisabled = !isChecked && isMaxReached;
+
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "flex items-center space-x-3 p-4 rounded-lg border-2 transition-all duration-200",
+                  isChecked
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : isDisabled
+                      ? "border-border bg-muted/50 opacity-60"
+                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                )}
+              >
+                <Checkbox
+                  id={`${question.id}-${index}`}
+                  checked={isChecked}
+                  disabled={isDisabled}
+                  onCheckedChange={(checked) =>
+                    handleOptionChange(option.value, checked === true)
+                  }
+                  className="shrink-0"
+                />
+                <Label
+                  htmlFor={`${question.id}-${index}`}
                   className={cn(
-                    "flex items-center space-x-3 p-3 rounded-lg border transition-all duration-200",
+                    "font-medium cursor-pointer flex-1",
                     isChecked
-                      ? "border-primary/50 bg-primary/5"
-                      : "border-border/40 hover:border-border/60 hover:bg-accent/5"
+                      ? "text-primary"
+                      : isDisabled
+                        ? "text-muted-foreground cursor-not-allowed"
+                        : "text-foreground"
                   )}
                 >
-                  <Checkbox
-                    id={`${question.id}-${index}`}
-                    checked={isChecked}
-                    onCheckedChange={(checked) =>
-                      handleOptionChange(option.value, checked === true)
-                    }
-                    className="shrink-0"
-                  />
-                  <Label
-                    htmlFor={`${question.id}-${index}`}
-                    className="text-sm font-medium text-foreground cursor-pointer flex-1 leading-relaxed"
-                  >
-                    {option.label}
-                  </Label>
-                </div>
-              );
-            })}
-          </div>
+                  {option.label}
+                </Label>
+              </div>
+            );
+          })
         ) : (
-          <div className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border/40 rounded-lg">
+          <p className="text-sm text-muted-foreground italic">
             No options available
-          </div>
+          </p>
         )}
       </div>
 
       {/* Selected count indicator */}
       {selectedOptions.length > 0 && (
-        <div className="text-xs text-primary bg-primary/10 px-3 py-2 rounded-md border border-primary/20">
-          {selectedOptions.length} option{selectedOptions.length !== 1 ? 's' : ''} selected
-          {question.metadata?.max && typeof question.metadata.max === 'number' && (
-            <span className="ml-2 text-muted-foreground">
-              (max: {question.metadata.max})
-            </span>
-          )}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
+          <span className="font-medium text-foreground">{selectedOptions.length}</span>
+          <span>option{selectedOptions.length !== 1 ? 's' : ''} selected</span>
         </div>
       )}
 
       {/* Error display */}
-      {errors.length > 0 && (
-        <div className="text-sm text-destructive space-y-1 pt-2">
-          {errors.map((error, index) => (
-            <p key={index} className="flex items-center gap-1">
-              <span className="text-xs">⚠</span>
-              {error}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* Validation hints */}
-      {question.metadata && (
-        <div className="text-xs text-muted-foreground space-y-1 pt-2">
-          {question.required && (
-            <p className="flex items-center gap-1">
-              <span className="text-destructive">*</span>
-              At least one option must be selected
-            </p>
-          )}
-          {question.metadata.min && typeof question.metadata.min === 'number' && (
-            <p>Minimum {question.metadata.min} selection{question.metadata.min !== 1 ? 's' : ''} required</p>
-          )}
-          {question.metadata.max && typeof question.metadata.max === 'number' && (
-            <p>Maximum {question.metadata.max} selection{question.metadata.max !== 1 ? 's' : ''} allowed</p>
-          )}
-        </div>
+      {hasError && (
+        <p className="text-sm text-destructive mt-2">
+          {error[0]}
+        </p>
       )}
     </div>
   );

@@ -1,14 +1,135 @@
-import { Question } from '@/types/common'
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { Question } from '@/types/common';
+import { useState, useEffect } from "react";
+import { CheckCircle2Icon, ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
+  error?: string[]
 }
 
-const ChoicePicture = ({ question, value, onChange }: Props) => {
+const ChoicePicture = ({ question, value, onChange, error }: Props) => {
+  const [selectedValue, setSelectedValue] = useState<string | undefined>(value);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
+  const options = question.options || [];
+
+  useEffect(() => {
+    if (value) {
+      setSelectedValue(value);
+    }
+  }, [value]);
+
+  const handleSelect = (optionValue: string) => {
+    setSelectedValue(optionValue);
+    onChange?.(optionValue);
+  };
+
+  const handleImageError = (index: number) => {
+    setImageErrors(prev => new Set(prev).add(index));
+  };
+
+  const hasError = error && error.length > 0;
+
   return (
-    <div>ChoicePicture</div>
+    <div className='w-full space-y-4 p-2 pb-5'>
+      <div className="py-2">
+        <Label
+          htmlFor={question.id}
+          className={cn(
+            "font-medium text-foreground text-xl",
+            question.required && "after:content-['*'] after:text-destructive"
+          )}
+        >
+          {question.title}
+        </Label>
+
+        {question.description && (
+          <p className="text-md text-muted-foreground italic py-1 mt-2">
+            {question.description}
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {options.map((option, index) => {
+          const isSelected = selectedValue === option.value;
+          const hasImageError = imageErrors.has(index);
+
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={() => handleSelect(option.value)}
+              className={cn(
+                "relative aspect-square rounded-lg border-2 transition-all duration-200 overflow-hidden group",
+                isSelected
+                  ? "border-primary shadow-lg ring-2 ring-primary/20"
+                  : "border-border hover:border-primary/50 hover:shadow-md"
+              )}
+            >
+              {/* Image */}
+              <div className="w-full h-full relative bg-muted">
+                {!hasImageError && option.value ? (
+                  <Image
+                    src={option.value}
+                    alt={option.label || `Option ${index + 1}`}
+                    fill
+                    className={cn(
+                      "object-cover transition-transform duration-300",
+                      isSelected ? "scale-105" : "group-hover:scale-105"
+                    )}
+                    onError={() => handleImageError(index)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+                    <ImageIcon className="w-12 h-12 mb-2" />
+                    <span className="text-xs text-center px-2">
+                      {option.label || 'No image'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Selection Indicator */}
+              {isSelected && (
+                <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-lg">
+                  <CheckCircle2Icon className="w-5 h-5 text-primary-foreground" />
+                </div>
+              )}
+
+              {/* Label Overlay */}
+              {option.label && !hasImageError && (
+                <div className={cn(
+                  "absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-3 transition-opacity",
+                  isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                )}>
+                  <p className="text-white text-sm font-medium truncate">
+                    {option.label}
+                  </p>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {options.length === 0 && (
+        <p className="text-sm text-muted-foreground italic">
+          No image options available
+        </p>
+      )}
+
+      {hasError && (
+        <p className="text-sm text-destructive mt-2">
+          {error[0]}
+        </p>
+      )}
+    </div>
   )
 }
 
