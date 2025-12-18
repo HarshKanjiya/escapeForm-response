@@ -1,4 +1,4 @@
-import { Question, QuestionType } from '@prisma/client'
+import { Question, QuestionType, Form } from '@prisma/client'
 import Date from './fields/basic/Date'
 import Leagal from './fields/basic/Leagal'
 import Number from './fields/basic/Number'
@@ -28,7 +28,9 @@ interface Props {
     question: Question,
     value?: any,
     onChange?: (value: any) => void,
-    error?: string[]
+    error?: string[],
+    onReset?: () => void,
+    form?: Partial<Form>
 }
 
 const RenderFormField = (props: Props) => {

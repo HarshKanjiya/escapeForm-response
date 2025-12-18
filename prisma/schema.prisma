@@ -60,6 +60,7 @@ model Form {
   passwordProtected   Boolean?         @default(false)
   analyticsEnabled    Boolean?         @default(true)
   valid               Boolean          @default(true)
+  metadata            Json?            @default("{}")
   createdBy           String
   createdAt           DateTime?        @db.Timestamptz(6)
   updatedAt           DateTime?        @db.Timestamptz(6)

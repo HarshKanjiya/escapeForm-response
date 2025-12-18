@@ -57,3 +57,12 @@ export type FormWithQuestionsAndEdges = Form & {
     questions: Question[];
     edges: any[];
 }
+
+export type formMetadata = {
+    primaryColor?: string;
+    secondaryColor?: string;
+    actionBtnSize?: 'sm' | 'default' | 'lg' | 'xl';
+    backBtnLabel?: string;
+    nextBtnLabel?: string;
+    submitBtnLabel?: string;
+}

@@ -3,7 +3,10 @@
 import { FormWithQuestionsAndEdges } from "@/types/common";
 import { Question } from "@prisma/client";
 import { useEffect, useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 import RenderFormField from "./RenderFormField";
+import { Button } from "../ui/button";
+import SignInRequired from "./SignInRequired";
 
 interface SinglePageFormProps {
   form: FormWithQuestionsAndEdges
@@ -11,16 +14,67 @@ interface SinglePageFormProps {
 
 
 const SinglePageForm = ({ form }: SinglePageFormProps) => {
-
+  const { data: session, status } = useSession();
   const [dataSource, setDataSource] = useState<Record<string, string | number | boolean | string[]>>({});
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [welcomeScreen, setWelcomeScreen] = useState<Question | null>(null);
+  const [endScreen, setEndScreen] = useState<Question | null>(null);
+  const [formStarted, setFormStarted] = useState(false);
+  const [formCompleted, setFormCompleted] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
+
+  // Check if authentication is required
+  const requiresAuth = !form.multipleSubmissions || !form.allowAnonymous;
+
+  const metaData = {
+    primaryColor: (typeof form.metadata === 'object' && !Array.isArray(form.metadata)) ? (form.metadata?.primaryColor as string | undefined) ?? '#6336F7' : '#6336F7',
+    secondaryColor: (typeof form.metadata === 'object' && !Array.isArray(form.metadata)) ? (form.metadata?.secondaryColor as string | undefined) ?? '#2563eb' : '#2563eb',
+    actionBtnSize: (typeof form.metadata === 'object' && !Array.isArray(form.metadata)) ? (form.metadata?.actionBtnSize as 'sm' | 'default' | 'lg' | 'xl' | undefined) ?? 'default' : 'default',
+    submitBtnLabel: (typeof form.metadata === 'object' && !Array.isArray(form.metadata)) ? (form.metadata?.submitBtnLabel as string | undefined) ?? 'Submit' : 'Submit'
+  }
 
   useEffect(() => {
     if (!form) return;
-    const ques = form.questions as Question[];
-    setQuestions(ques);
+    const allQuestions = form.questions as Question[];
+
+    // Separate welcome and end screens from regular questions
+    const welcome = allQuestions.find(q => q.type === 'SCREEN_WELCOME');
+    const end = allQuestions.find(q => q.type === 'SCREEN_END');
+    const regularQuestions = allQuestions.filter(
+      q => q.type !== 'SCREEN_WELCOME' && q.type !== 'SCREEN_END'
+    );
+
+    setWelcomeScreen(welcome || null);
+    setEndScreen(end || null);
+    setQuestions(regularQuestions);
+
+    // If no welcome screen, start the form automatically
+    if (!welcome) {
+      setFormStarted(true);
+    }
   }, [])
+
+  useEffect(() => {
+    if (metaData.primaryColor) {
+      document.documentElement.style.setProperty('--primary', metaData.primaryColor);
+      let metaTag = document.querySelector('meta[name="theme-color"]');
+      if (!metaTag) {
+        metaTag = document.createElement('meta');
+        metaTag.setAttribute('name', 'theme-color');
+        document.head.appendChild(metaTag);
+      }
+      metaTag.setAttribute('content', metaData.primaryColor);
+    }
+
+    return () => {
+      document.documentElement.style.removeProperty('--primary');
+      const metaTag = document.querySelector('meta[name="theme-color"]');
+      if (metaTag) {
+        metaTag.remove();
+      }
+    };
+  }, [metaData.primaryColor]);
 
   const handleFieldChange = (questionId: string, value: string | number | boolean | string[]) => {
     setDataSource(prev => ({
@@ -36,6 +90,105 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
       }));
     }
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    completeSubmission();
+  };
+
+  const completeSubmission = () => {
+    console.log('Form submitted:', dataSource);
+    
+    // Log user info if signed in
+    if (session?.user) {
+      console.log('User submitting form:', {
+        googleUserId: (session.user as any).googleId,
+        email: session.user.email,
+        name: session.user.name,
+        formId: form.id,
+        // responseId will be generated when saving to database
+      });
+    }
+    
+    setFormCompleted(true);
+    setPendingSubmit(false);
+    // Handle form submission here
+  };
+
+  // Effect to start form after successful sign-in
+  useEffect(() => {
+    if (pendingSubmit && session && !formStarted) {
+      setFormStarted(true);
+      setPendingSubmit(false);
+    }
+  }, [session, pendingSubmit, formStarted]);
+
+  const handleStartForm = () => {
+    // Check if authentication is required before starting the form
+    if (requiresAuth && !session) {
+      setPendingSubmit(true);
+      return;
+    }
+    setFormStarted(true);
+  };
+
+  const handleResetForm = () => {
+    // Reset all form state
+    setDataSource({});
+    setErrors({});
+    setFormCompleted(false);
+    
+    // If welcome screen exists, go back to it, otherwise stay in form
+    if (welcomeScreen) {
+      setFormStarted(false);
+    }
+  };
+
+  const handleEndScreenNext = () => {
+    // You can add logic here for what happens after end screen
+    console.log('End screen completed');
+  };
+
+  // Show sign-in screen if authentication is required and user is not signed in
+  if (pendingSubmit && requiresAuth && !session) {
+    return (
+      <SignInRequired
+        status={status}
+        onBack={() => setPendingSubmit(false)}
+        showBackButton={!!welcomeScreen}
+      />
+    );
+  }
+
+  // Show welcome screen if not started and welcome screen exists
+  if (!formStarted && welcomeScreen) {
+    return (
+      <div className="p-6 h-full w-full flex items-center justify-center">
+        <RenderFormField
+          question={welcomeScreen}
+          onChange={handleStartForm}
+          value={undefined}
+          error={undefined}
+          form={form}
+        />
+      </div>
+    );
+  }
+
+  // Show end screen if form completed and end screen exists
+  if (formCompleted && endScreen) {
+    return (
+      <div className="p-6 h-full w-full flex items-center justify-center">
+        <RenderFormField
+          question={endScreen}
+          onChange={handleEndScreenNext}
+          value={undefined}
+          error={undefined}
+          onReset={form.multipleSubmissions ? handleResetForm : undefined}
+        />
+      </div>
+    );
+  }
 
 
   if (!questions?.length) {
@@ -54,14 +207,7 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
   return (
     <div className="p-6 h-full w-full">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Form Preview</h1>
-          <p className="text-muted-foreground">
-            This is how your form will appear to users
-          </p>
-        </div>
-
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {questions.map((q) =>
             <RenderFormField
               key={q.id}
@@ -74,12 +220,12 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
 
           {questions.length > 0 && (
             <div className="pt-6 border-t">
-              <button
+              <Button
                 type="submit"
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                size={metaData.actionBtnSize || 'default'}
               >
-                Submit Form
-              </button>
+                {metaData.submitBtnLabel || 'Submit Form'}
+              </Button>
             </div>
           )}
         </form>
