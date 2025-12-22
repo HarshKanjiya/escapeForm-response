@@ -74,10 +74,10 @@ const RatingStar = ({ question, value, onChange, error }: Props) => {
               >
                 <StarIcon
                   className={cn(
-                    "w-10 h-10 transition-all duration-200",
+                    "w-8 h-8 transition-all duration-200",
                     isFilled
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "fill-none text-muted-foreground hover:text-yellow-300"
+                      ? "fill-primary text-primary"
+                      : "fill-none text-muted-foreground hover:text-primary"
                   )}
                 />
               </button>

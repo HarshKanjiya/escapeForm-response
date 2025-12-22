@@ -2,7 +2,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
 import { useState, useEffect } from "react";
-import { CheckCircle2Icon, CircleIcon } from "lucide-react";
 
 interface Props {
   question: Question,
@@ -80,7 +79,7 @@ const ChoiceMultiple = ({ question, value, onChange, error }: Props) => {
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {options.map((option, index) => {
           const isSelected = selectedValues.includes(option.value);
           const isMaxReached = maxSelections ? selectedValues.length >= maxSelections : false;
@@ -93,43 +92,22 @@ const ChoiceMultiple = ({ question, value, onChange, error }: Props) => {
               onClick={() => handleToggle(option.value)}
               disabled={isDisabled}
               className={cn(
-                "w-full p-4 rounded-lg border-2 transition-all duration-200 text-left flex items-center gap-3 group",
+                "w-full text-left px-4 py-3 rounded-lg border transition-all duration-200",
                 isSelected
-                  ? "border-primary bg-primary/5 shadow-sm"
+                  ? "border-primary/50 bg-primary/5"
                   : isDisabled
-                    ? "border-border bg-muted/50 opacity-60 cursor-not-allowed"
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    ? "border-border/40 bg-muted/50 opacity-60 cursor-not-allowed"
+                    : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
               )}
             >
-              <div className="shrink-0">
-                {isSelected ? (
-                  <CheckCircle2Icon className="w-5 h-5 text-primary" />
-                ) : (
-                  <CircleIcon className={cn(
-                    "w-5 h-5 transition-colors",
-                    isDisabled
-                      ? "text-muted-foreground/50"
-                      : "text-muted-foreground group-hover:text-primary/50"
-                  )} />
+              <span
+                className={cn(
+                  "text-sm font-medium leading-relaxed",
+                  isDisabled ? "text-muted-foreground" : "text-foreground"
                 )}
-              </div>
-
-              <span className={cn(
-                "font-medium flex-1",
-                isSelected
-                  ? "text-primary"
-                  : isDisabled
-                    ? "text-muted-foreground"
-                    : "text-foreground"
-              )}>
+              >
                 {option.label}
               </span>
-
-              {isSelected && (
-                <span className="text-xs text-primary/70 bg-primary/10 px-2 py-1 rounded">
-                  Selected
-                </span>
-              )}
             </button>
           );
         })}
@@ -143,9 +121,9 @@ const ChoiceMultiple = ({ question, value, onChange, error }: Props) => {
       )}
 
       {options.length === 0 && (
-        <p className="text-sm text-muted-foreground italic">
+        <div className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border/40 rounded-lg">
           No options available
-        </p>
+        </div>
       )}
 
       {hasError && (

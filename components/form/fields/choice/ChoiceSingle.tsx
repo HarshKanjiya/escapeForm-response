@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
 import { CheckCircle2Icon, CircleIcon } from "lucide-react";
@@ -13,7 +15,6 @@ interface Props {
 
 const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>(value);
-
   const choices = question.options?.map(opt => opt.label) || [];
 
   useEffect(() => {
@@ -49,12 +50,51 @@ const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
+        {question?.options && question?.options?.length > 0 ? (
+          <RadioGroup
+            value={selectedValue}
+            onValueChange={handleSelect}
+            className="gap-4"
+          >
+            {question.options.map((option, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "flex items-center space-x-4 pl-4 rounded-lg border transition-all duration-200",
+                  selectedValue === option.value
+                    ? "border-primary/50 bg-primary/5"
+                    : "border-border/40 hover:border-border/60 hover:bg-accent/5"
+                )}
+              >
+                <RadioGroupItem
+                  value={option.value}
+                  id={`${question.id}-${index}`}
+                  className="shrink-0"
+                />
+                <Label
+                  htmlFor={`${question.id}-${index}`}
+                  className="text-sm font-medium py-3 text-foreground cursor-pointer flex-1 leading-relaxed"
+                >
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        ) : (
+          <div className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border/40 rounded-lg">
+            No options available
+          </div>
+        )}
+      </div>
+
+      {/* <div className="space-y-2">
         {choices.map((choice, index) => {
           const isSelected = selectedValue === choice;
 
           return (
-            <button
+            <Button
+              variant={'ghost'}
               key={index}
               type="button"
               onClick={() => handleSelect(choice)}
@@ -79,7 +119,7 @@ const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
               )}>
                 {choice}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -88,7 +128,7 @@ const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
         <p className="text-sm text-muted-foreground italic">
           No choices available
         </p>
-      )}
+      )} */}
 
       {hasError && (
         <p className="text-sm text-destructive mt-2">

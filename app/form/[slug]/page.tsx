@@ -35,7 +35,11 @@ const Page = async ({ params }: PageProps) => {
             uniqueSubdomain: slug
         },
         include: {
-            questions: true,
+            questions: {
+                include: {
+                    options: true
+                }
+            },
             edges: true
         }
     });

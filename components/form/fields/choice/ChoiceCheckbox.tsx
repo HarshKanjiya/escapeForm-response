@@ -90,12 +90,12 @@ const ChoiceCheckbox = ({ question, value, onChange, error }: Props) => {
               <div
                 key={index}
                 className={cn(
-                  "flex items-center space-x-3 p-4 rounded-lg border-2 transition-all duration-200",
+                  "flex items-center space-x-4 pl-4 rounded-lg border transition-all duration-200",
                   isChecked
-                    ? "border-primary bg-primary/5 shadow-sm"
+                    ? "border-primary/50 bg-primary/5"
                     : isDisabled
-                      ? "border-border bg-muted/50 opacity-60"
-                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      ? "border-border/40 bg-muted/50 opacity-60"
+                      : "border-border/40 hover:border-border/60 hover:bg-accent/5"
                 )}
               >
                 <Checkbox
@@ -110,12 +110,8 @@ const ChoiceCheckbox = ({ question, value, onChange, error }: Props) => {
                 <Label
                   htmlFor={`${question.id}-${index}`}
                   className={cn(
-                    "font-medium cursor-pointer flex-1",
-                    isChecked
-                      ? "text-primary"
-                      : isDisabled
-                        ? "text-muted-foreground cursor-not-allowed"
-                        : "text-foreground"
+                    "text-sm font-medium py-3 cursor-pointer flex-1 leading-relaxed",
+                    isDisabled ? "cursor-not-allowed text-muted-foreground" : "text-foreground"
                   )}
                 >
                   {option.label}
@@ -124,9 +120,9 @@ const ChoiceCheckbox = ({ question, value, onChange, error }: Props) => {
             );
           })
         ) : (
-          <p className="text-sm text-muted-foreground italic">
+          <div className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border/40 rounded-lg">
             No options available
-          </p>
+          </div>
         )}
       </div>
 
