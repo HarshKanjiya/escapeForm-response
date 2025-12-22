@@ -5,9 +5,11 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { Separator } from "../ui/separator";
 import RenderFormField from "./RenderFormField";
 import SignInRequired from "./SignInRequired";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface SinglePageFormProps {
   form: FormWithQuestionsAndEdges
@@ -206,55 +208,93 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <ScrollArea className="flex-1 h-full pr-8 py-4">
-        <div className="mx-auto">
-          <div className="px-2">
-            <div className="py-6 flex gap-6 justify-start p-4 px-6 rounded-xl bg-white border-l-12 border-primary">
-              <div className="flex items-center justify-center overflow-hidden corner-squircle rounded-4xl aspect-square h-fit w-fit">
-                <Image
-                  src={form.logoUrl || '/logo-light.svg'}
-                  alt="Form logo"
-                  width={60}
-                  height={60}
-                  className="object-contain rounded-lg"
-                  quality={100}
-                  priority
-                  unoptimized={false}
-                />
-              </div>
-              <div className="space-y-1">
-                <h1 className="text-2xl font-semibold ">{form.name}</h1>
-                <span className="text-accent-foreground text-sm">{form.description}</span>
-              </div>
-            </div>
-          </div>
-          <form className="space-y-2" onSubmit={handleSubmit}>
-            {questions.map((q) =>
-              <RenderFormField
-                key={q.id}
-                question={q}
-                onChange={(v) => handleFieldChange(q.id, v)}
-                value={dataSource[q.id]}
-                error={errors[q.id]}
-              />
-            )}
-
-            {questions.length > 0 && (
-              <div className="py-6 mt-8 border-t border-border/40">
-                <div className="flex justify-center sm:justify-start">
-                  <Button
-                    type="submit"
-                    size={metaData.actionBtnSize || 'default'}
-                  >
-                    {metaData.submitBtnLabel || 'Submit Form'}
-                  </Button>
+    <div className="p-4 md:p-6">
+      <div className="h-full w-full flex flex-col">
+        <ScrollArea className="flex-1 h-full">
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-3 items-center">
+              <div className="mx-auto max-w-3xl bg-white rounded-3xl corner-squircle border border-border/50 w-full">
+                <div className="px-6 md:px-8 pt-8 pb-6">
+                  <div className="flex gap-5 items-start">
+                    <div className="ring-4 ring-primary/20 shrink-0 overflow-hidden corner-squircle rounded-3xl border border-border/50 bg-background">
+                      <Image
+                        src={form.logoUrl || '/logo-light.svg'}
+                        alt="Form logo"
+                        width={64}
+                        height={64}
+                        className="object-cover rounded-3xl corner-squircle"
+                        quality={100}
+                        priority
+                        unoptimized={false}
+                      />
+                    </div>
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                        {form.name}
+                      </h1>
+                      {form.description && (
+                        <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                          {form.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+              <div className="mx-auto max-w-3xl bg-white rounded-3xl corner-squircle border border-border/50 w-full">
+
+                {/* Form Fields */}
+                {/* <form onSubmit={handleSubmit}> */}
+                <div className="px-6 md:px-8">
+                  {questions.map((q, index) => (
+                    <div key={q.id}>
+                      <div className="py-8 flex gap-2">
+                        {/* <p className="bg-border/50 mt-3 rounded-3xl corner-squircle flex items-center justify-center p-4 h-8 w-8 aspect-square">
+                          {index + 1}
+                        </p> */}
+                        <RenderFormField
+                          question={q}
+                          onChange={(v) => handleFieldChange(q.id, v)}
+                          value={dataSource[q.id]}
+                          error={errors[q.id]}
+                        />
+                      </div>
+                      {index < questions.length - 1 && (
+                        <Separator />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mx-auto max-w-3xl bg-white rounded-3xl corner-squircle border border-border/50 w-full">
+                {/* Submit Button Section */}
+                {questions.length > 0 && (
+                  <>
+                    <div className="px-6 py-6">
+                      <div className="flex justify-end gap-3">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size={metaData.actionBtnSize || 'lg'}
+                        >
+                          Clear
+                        </Button>
+                        <Button
+                          type="submit"
+                          size={metaData.actionBtnSize || 'lg'}
+                          className={cn("min-w-[140px] font-medium")}
+                        >
+                          {metaData.submitBtnLabel || 'Submit Form'}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </form>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
   )
 }

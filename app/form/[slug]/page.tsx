@@ -7,6 +7,25 @@ interface PageProps {
     params: Promise<{ slug: string }>
 }
 
+export const generateMetadata = async ({ params }: PageProps) => {
+
+    const { slug } = await params;
+    const form = await prisma.form.findFirst({
+        where: {
+            uniqueSubdomain: slug
+        }
+    });
+    if (!form) {
+        return {
+            title: "Form not found"
+        }
+    }
+    return {
+        title: form.name,
+        description: form.description || "Fill out this form"
+    }
+}
+
 const Page = async ({ params }: PageProps) => {
 
     const { slug } = await params;

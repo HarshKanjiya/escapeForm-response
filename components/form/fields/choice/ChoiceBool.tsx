@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
 import { useState, useEffect } from "react";
 import { CheckCircle2Icon, CircleIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Props {
   question: Question,
@@ -49,60 +51,21 @@ const ChoiceBool = ({ question, value, onChange, error }: Props) => {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* Yes Option */}
-        <button
-          type="button"
-          onClick={() => handleSelect(true)}
-          className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center gap-2 group",
-            selectedValue === true
-              ? "border-primary bg-primary/5 shadow-sm"
-              : "border-border hover:border-primary/50 hover:bg-muted/50"
-          )}
-        >
-          <div className="shrink-0">
-            {selectedValue === true ? (
-              <CheckCircle2Icon className="w-6 h-6 text-primary" />
-            ) : (
-              <CircleIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary/50 transition-colors" />
-            )}
-          </div>
-
-          <span className={cn(
-            "font-medium text-lg",
-            selectedValue === true ? "text-primary" : "text-foreground"
-          )}>
-            Yes
-          </span>
-        </button>
-
-        {/* No Option */}
-        <button
-          type="button"
-          onClick={() => handleSelect(false)}
-          className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center gap-2 group",
-            selectedValue === false
-              ? "border-primary bg-primary/5 shadow-sm"
-              : "border-border hover:border-primary/50 hover:bg-muted/50"
-          )}
-        >
-          <div className="shrink-0">
-            {selectedValue === false ? (
-              <CheckCircle2Icon className="w-6 h-6 text-primary" />
-            ) : (
-              <CircleIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary/50 transition-colors" />
-            )}
-          </div>
-
-          <span className={cn(
-            "font-medium text-lg",
-            selectedValue === false ? "text-primary" : "text-foreground"
-          )}>
-            No
-          </span>
-        </button>
+      <div className="flex flex-col gap-2">
+        <Button type="button" variant="ghost" className={cn(
+          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
+          selectedValue === true && "border-primary bg-primary/10"
+        )}
+          onClick={() => handleSelect(true)}>
+          <p>Yes</p>
+        </Button>
+        <Button type="button" variant="ghost" className={cn(
+          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
+          selectedValue === false && "border-primary bg-primary/10"
+        )}
+          onClick={() => handleSelect(false)}>
+          <p>No</p>
+        </Button>
       </div>
 
       {hasError && (

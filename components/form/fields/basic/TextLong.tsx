@@ -52,7 +52,7 @@ const TextLong = ({ question, value, onChange }: Props) => {
           required={question.required}
           minLength={question.metadata?.min as number || undefined}
           maxLength={question.metadata?.max as number || undefined}
-          className={cn('border border-muted bg-white! shadow-none! py-6 px-4 text-xl! min-h-[130px]', question.metadata?.max ? "pr-10" : "", "w-full")}
+          className={cn('border resize-none border-muted bg-white! shadow-none! py-6 px-4 text-xl! min-h-[130px]', question.metadata?.max ? "pr-10" : "", "w-full")}
           rows={5}
         ></Textarea>
         {question.metadata?.max && typeof question.metadata.max === 'number' && (

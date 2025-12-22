@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
@@ -48,35 +49,23 @@ const Legal = ({ question, value, onChange, error }: Props) => {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* Accept Button */}
-        <button
-          type="button"
-          onClick={() => handleSelect(true)}
-          className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-200 font-semibold text-lg",
-            selectedValue === true
-              ? "border-primary bg-primary text-primary-foreground shadow-lg"
-              : "border-border bg-background hover:border-primary/50 hover:bg-primary/5 text-foreground"
-          )}
-        >
-          Accept
-        </button>
-
-        {/* Reject Button */}
-        <button
-          type="button"
-          onClick={() => handleSelect(false)}
-          className={cn(
-            "p-4 rounded-lg border-2 transition-all duration-200 font-semibold text-lg",
-            selectedValue === false
-              ? "border-destructive bg-destructive text-destructive-foreground shadow-lg"
-              : "border-border bg-background hover:border-destructive/50 hover:bg-destructive/5 text-foreground"
-          )}
-        >
-          Reject
-        </button>
+      <div className="flex flex-col gap-2">
+        <Button type="button" variant="ghost" className={cn(
+          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
+          selectedValue === true && "border-primary bg-primary/10"
+        )}
+          onClick={() => handleSelect(true)}>
+          <p>Accept</p>
+        </Button>
+        <Button type="button" variant="ghost" className={cn(
+          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
+          selectedValue === false && "border-primary bg-primary/10"
+        )}
+          onClick={() => handleSelect(false)}>
+          <p>Reject</p>
+        </Button>
       </div>
+
 
       {hasError && (
         <p className="text-sm text-destructive mt-2">
