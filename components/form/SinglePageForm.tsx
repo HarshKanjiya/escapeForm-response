@@ -1,7 +1,7 @@
 "use client";
 
 import { FormWithQuestionsAndEdges, Question } from "@/types/common";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
@@ -10,6 +10,8 @@ import RenderFormField from "./RenderFormField";
 import SignInRequired from "./SignInRequired";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 interface SinglePageFormProps {
   form: FormWithQuestionsAndEdges
@@ -23,6 +25,7 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [welcomeScreen, setWelcomeScreen] = useState<Question | null>(null);
   const [endScreen, setEndScreen] = useState<Question | null>(null);
+  const [showEntryPage, setShowEntryPage] = useState(true);
   const [formStarted, setFormStarted] = useState(false);
   const [formCompleted, setFormCompleted] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState(false);
@@ -51,11 +54,6 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
     setWelcomeScreen(welcome || null);
     setEndScreen(end || null);
     setQuestions(regularQuestions);
-
-    // If no welcome screen, start the form automatically
-    if (!welcome) {
-      setFormStarted(true);
-    }
   }, [])
 
   useEffect(() => {
@@ -118,20 +116,35 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
     // Handle form submission here
   };
 
-  // Effect to start form after successful sign-in
+  // Effect to show welcome screen after successful sign-in
   useEffect(() => {
-    if (pendingSubmit && session && !formStarted) {
-      setFormStarted(true);
+    if (pendingSubmit && session) {
       setPendingSubmit(false);
+      // Show welcome screen if exists, otherwise start form
+      if (welcomeScreen) {
+        setFormStarted(false);
+      } else {
+        setFormStarted(true);
+      }
     }
-  }, [session, pendingSubmit, formStarted]);
+  }, [session, pendingSubmit, welcomeScreen]);
 
-  const handleStartForm = () => {
-    // Check if authentication is required before starting the form
+  const handleEntryPageNext = () => {
+    setShowEntryPage(false);
+    // Check if authentication is required
     if (requiresAuth && !session) {
       setPendingSubmit(true);
       return;
     }
+    // Show welcome screen if exists, otherwise start form
+    if (welcomeScreen) {
+      setFormStarted(false);
+    } else {
+      setFormStarted(true);
+    }
+  };
+
+  const handleStartForm = () => {
     setFormStarted(true);
   };
 
@@ -140,11 +153,16 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
     setDataSource({});
     setErrors({});
     setFormCompleted(false);
+    setFormStarted(false);
+    setShowEntryPage(true);
+  };
 
-    // If welcome screen exists, go back to it, otherwise stay in form
-    if (welcomeScreen) {
-      setFormStarted(false);
-    }
+  const handleSwitchAccount = async () => {
+    // Sign out and then redirect back to form to sign in with different account
+    await signOut({ redirect: false });
+    setPendingSubmit(true);
+    setFormStarted(false);
+    setShowEntryPage(false);
   };
 
   const handleEndScreenNext = () => {
@@ -152,13 +170,59 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
     console.log('End screen completed');
   };
 
+  // Show entry page first
+  if (showEntryPage) {
+    return (
+      <div className="p-6 h-full w-full flex items-center justify-center">
+        <div className="mx-auto max-w-2xl bg-white rounded-3xl corner-squircle border border-border/50 w-full">
+          <div className="px-8 md:px-12 py-12">
+            <div className="flex flex-col items-center gap-6 text-center">
+              <div className="ring-4 ring-primary/20 shrink-0 overflow-hidden corner-squircle rounded-3xl border border-border/50 bg-background">
+                <Image
+                  src={form.logoUrl || '/logo-light.svg'}
+                  alt="Form logo"
+                  width={80}
+                  height={80}
+                  className="object-cover rounded-3xl corner-squircle"
+                  quality={100}
+                  priority
+                  unoptimized={false}
+                />
+              </div>
+              <div className="space-y-3">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+                  {form.name}
+                </h1>
+                {form.description && (
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
+                    {form.description}
+                  </p>
+                )}
+              </div>
+              <Button
+                onClick={handleEntryPageNext}
+                size={metaData.actionBtnSize || 'lg'}
+                className="mt-4 min-w-[160px] font-medium"
+              >
+                Start
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Show sign-in screen if authentication is required and user is not signed in
   if (pendingSubmit && requiresAuth && !session) {
     return (
       <SignInRequired
         status={status}
-        onBack={() => setPendingSubmit(false)}
-        showBackButton={!!welcomeScreen}
+        onBack={() => {
+          setPendingSubmit(false);
+          setShowEntryPage(true);
+        }}
+        showBackButton={true}
       />
     );
   }
@@ -239,6 +303,48 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
                       )}
                     </div>
                   </div>
+
+                  {/* User Account Section */}
+                  {session?.user && (
+                    <div className="mt-6 pt-6 border-t border-border/50">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
+                            <AvatarFallback className="text-xs">
+                              {session.user.email?.[0].toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {session.user.email}
+                            </p>
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="shrink-0"
+                            >
+                              Switch account
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleSwitchAccount}>
+                              Sign in with another account
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => signOut()}>
+                              Sign out
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="mx-auto max-w-3xl bg-white rounded-3xl corner-squircle border border-border/50 w-full">
