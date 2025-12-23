@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
 import { useState, useEffect } from "react";
 import { StarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   question: Question,
@@ -65,22 +66,23 @@ const RatingStar = ({ question, value, onChange, error }: Props) => {
             const isFilled = hoverValue !== null ? star <= hoverValue : selectedValue !== undefined && star <= selectedValue;
 
             return (
-              <button
+              <Button
+                variant={'ghost'}
                 key={star}
                 type="button"
                 onClick={() => handleSelect(star)}
                 onMouseEnter={() => setHoverValue(star)}
-                className="transition-transform duration-150 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                className="rounded-full aspect-square! h-12"
               >
                 <StarIcon
                   className={cn(
-                    "w-8 h-8 transition-all duration-200",
+                    "h-6! w-6! transition-all duration-200",
                     isFilled
                       ? "fill-primary text-primary"
                       : "fill-none text-muted-foreground hover:text-primary"
                   )}
                 />
-              </button>
+              </Button>
             );
           })}
         </div>

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
@@ -59,21 +60,21 @@ const RatingZeroToTen = ({ question, value, onChange, error }: Props) => {
         <div className="flex flex-wrap gap-2">
           {ratings.map((rating) => {
             const isSelected = selectedValue === rating;
-
             return (
-              <button
+              <Button
                 key={rating}
                 type="button"
+                variant={'outline'}
                 onClick={() => handleSelect(rating)}
                 className={cn(
-                  "min-w-[3rem] h-12 px-4 rounded-lg border-2 transition-all duration-200 font-semibold text-lg",
+                  "h-11 hover:bg-primary-300",
                   isSelected
-                    ? "border-primary bg-primary text-primary-foreground shadow-md scale-105"
-                    : "border-border bg-background hover:border-primary/50 hover:bg-primary/5 hover:scale-105"
+                    ? "border-primary bg-primary-500 text-primary-foreground"
+                    : ""
                 )}
               >
                 {rating}
-              </button>
+              </Button>
             );
           })}
         </div>
