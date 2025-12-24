@@ -8,6 +8,7 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
+  singlePage?: boolean
 }
 
 const TextLong = ({ question, value, onChange }: Props) => {

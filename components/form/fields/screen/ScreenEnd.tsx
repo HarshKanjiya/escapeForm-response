@@ -6,10 +6,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  onReset?: () => void
+  onReset?: () => void,
+  singlePage?: boolean
 }
 
-const ScreenEnd = ({ question, value, onChange, onReset }: Props) => {
+const ScreenEnd = ({ question, value, onChange, onReset, singlePage }: Props) => {
   const handleNext = () => {
     if (onChange) {
       onChange(true);
@@ -26,9 +27,9 @@ const ScreenEnd = ({ question, value, onChange, onReset }: Props) => {
     <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-8 max-w-2xl mx-auto p-8">
       <div className="space-y-6">
         <CheckCircle2Icon className="w-20 h-20 text-green-500 mx-auto" />
-        
+
         {question.title && (
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className={"text-2xl md:text-4xl font-bold tracking-tight"}>
             {question.title}
           </h1>
         )}
@@ -38,11 +39,11 @@ const ScreenEnd = ({ question, value, onChange, onReset }: Props) => {
           </p>
         )}
       </div>
-      
+
       <div className="flex flex-col sm:flex-row gap-4">
         {onReset && (
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             variant="outline"
             onClick={handleSubmitAgain}
             className="flex items-center gap-2 text-lg px-8 py-6"
@@ -51,10 +52,10 @@ const ScreenEnd = ({ question, value, onChange, onReset }: Props) => {
             Submit Again
           </Button>
         )}
-        
+
         {onChange && (
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             onClick={handleNext}
             className="flex items-center gap-2 text-lg px-8 py-6"
           >

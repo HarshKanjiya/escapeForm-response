@@ -8,6 +8,7 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
+  singlePage?: boolean
 }
 
 const TextShort = ({ question, value, onChange }: Props) => {

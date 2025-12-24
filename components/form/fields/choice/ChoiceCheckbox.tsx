@@ -8,16 +8,17 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const ChoiceCheckbox = ({ question, value, onChange, error }: Props) => {
+const ChoiceCheckbox = ({ question, value, onChange, error, singlePage }: Props) => {
 
   const [selectedOptions, setSelectedOptions] = useState<string[]>(
     Array.isArray(value) ? value : []
   );
 
-  const options = question.options || [];
+  const options = question.options?.filter((i) => i.label?.trim().length) || [];
   const metadata = question.metadata || {};
   const minSelections = typeof metadata.min === 'number' ? metadata.min : undefined;
   const maxSelections = typeof metadata.max === 'number' ? metadata.max : undefined;
@@ -54,7 +55,8 @@ const ChoiceCheckbox = ({ question, value, onChange, error }: Props) => {
         <Label
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}

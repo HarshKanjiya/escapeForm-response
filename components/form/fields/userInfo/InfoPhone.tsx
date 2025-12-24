@@ -11,10 +11,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const InfoPhone = ({ question, value, onChange, error }: Props) => {
+const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
   const metadata = question.metadata || {};
   const allowAnyCountry = metadata.allowAnyCountry !== false;
   const allowedCountries = metadata.allowedCountries as string[] | undefined;
@@ -107,7 +108,8 @@ const InfoPhone = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}

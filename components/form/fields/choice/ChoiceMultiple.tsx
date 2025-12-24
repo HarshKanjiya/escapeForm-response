@@ -1,21 +1,22 @@
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const ChoiceMultiple = ({ question, value, onChange, error }: Props) => {
+const ChoiceMultiple = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(
     Array.isArray(value) ? value : []
   );
 
-  const options = question.options || [];
+  const options = question.options?.filter((i) => i.label?.trim().length) || [];
   const metadata = question.metadata || {};
   const minSelections = typeof metadata.min === 'number' ? metadata.min : undefined;
   const maxSelections = typeof metadata.max === 'number' ? metadata.max : undefined;
@@ -54,7 +55,8 @@ const ChoiceMultiple = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}

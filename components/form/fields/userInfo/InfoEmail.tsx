@@ -9,10 +9,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const InfoEmail = ({ question, value, onChange, error }: Props) => {
+const InfoEmail = ({ question, value, onChange, error, singlePage }: Props) => {
   const [answer, setAnswer] = useState(value || "");
   const [validationError, setValidationError] = useState<string>("");
 
@@ -60,7 +61,8 @@ const InfoEmail = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}

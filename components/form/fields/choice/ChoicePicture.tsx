@@ -9,10 +9,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const ChoicePicture = ({ question, value, onChange, error }: Props) => {
+const ChoicePicture = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>(value);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
@@ -42,7 +43,8 @@ const ChoicePicture = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}

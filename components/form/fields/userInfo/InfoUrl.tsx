@@ -17,10 +17,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const InfoUrl = ({ question, value, onChange, error }: Props) => {
+const InfoUrl = ({ question, value, onChange, error, singlePage }: Props) => {
   const [answer, setAnswer] = useState(value || "");
   const [validationError, setValidationError] = useState<string>("");
   const [urlPreview, setUrlPreview] = useState<UrlPreviewData | null>(null);
@@ -140,7 +141,8 @@ const InfoUrl = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}
@@ -164,7 +166,7 @@ const InfoUrl = ({ question, value, onChange, error }: Props) => {
           minLength={metadata.min as number || undefined}
           maxLength={metadata.max as number || undefined}
           className={cn(
-            'border border-muted bg-white! py-6 px-4 text-xl!',
+            'border border-muted bg-white! py-6 px-4 text-lg sm:text-xl',
             metadata.max ? "pr-10" : "",
             "w-full",
             hasError && 'border-destructive'

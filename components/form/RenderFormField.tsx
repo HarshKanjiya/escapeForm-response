@@ -31,7 +31,8 @@ interface Props {
     onChange?: (value: any) => void,
     error?: string[],
     onReset?: () => void,
-    form?: Partial<Form>
+    form?: Partial<Form>,
+    singlePage?: boolean
 }
 
 const RenderFormField = (props: Props) => {

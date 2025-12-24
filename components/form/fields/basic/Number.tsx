@@ -8,7 +8,8 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
 const Number = ({ question, value, onChange, error }: Props) => {

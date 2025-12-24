@@ -1,21 +1,22 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
-import { CheckCircle2Icon, CircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
+const ChoiceSingle = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>(value);
   const choices = question.options?.map(opt => opt.label) || [];
+
+  const options = question.options?.filter((i) => i.label?.trim().length) || [];
 
   useEffect(() => {
     if (value) {
@@ -36,8 +37,9 @@ const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
         <Label
           htmlFor={question.id}
           className={cn(
-            "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            "font-medium text-foreground sm:text-xl",
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}
@@ -51,13 +53,13 @@ const ChoiceSingle = ({ question, value, onChange, error }: Props) => {
       </div>
 
       <div className="space-y-3">
-        {question?.options && question?.options?.length > 0 ? (
+        {options.length > 0 ? (
           <RadioGroup
             value={selectedValue}
             onValueChange={handleSelect}
             className="gap-4"
           >
-            {question.options.map((option, index) => (
+            {options.map((option, index) => (
               <div
                 key={index}
                 className={cn(

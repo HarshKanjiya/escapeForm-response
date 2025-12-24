@@ -10,10 +10,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const ChoiceBool = ({ question, value, onChange, error }: Props) => {
+const ChoiceBool = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedValue, setSelectedValue] = useState<boolean | undefined>(
     typeof value === 'boolean' ? value : undefined
   );
@@ -38,7 +39,8 @@ const ChoiceBool = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}
@@ -52,20 +54,26 @@ const ChoiceBool = ({ question, value, onChange, error }: Props) => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Button type="button" variant="ghost" className={cn(
-          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
-          selectedValue === true && "border-primary bg-primary/10"
-        )}
-          onClick={() => handleSelect(true)}>
-          <p>Yes</p>
-        </Button>
-        <Button type="button" variant="ghost" className={cn(
-          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
-          selectedValue === false && "border-primary bg-primary/10"
-        )}
-          onClick={() => handleSelect(false)}>
-          <p>No</p>
-        </Button>
+        <button
+          type="button"
+          onClick={() => handleSelect(true)}
+          className={cn(
+            "w-full text-left px-4 py-3 rounded-lg border transition-all duration-200",
+            selectedValue === true
+              ? "border-primary/50 bg-primary/5"
+              : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
+          )}
+        >Yes</button>
+        <button
+          type="button"
+          onClick={() => handleSelect(false)}
+          className={cn(
+            "w-full text-left px-4 py-3 rounded-lg border transition-all duration-200",
+            selectedValue === false
+              ? "border-primary/50 bg-primary/5"
+              : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
+          )}
+        >No</button>
       </div>
 
       {hasError && (

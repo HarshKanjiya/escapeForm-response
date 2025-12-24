@@ -1,17 +1,18 @@
+import { DatePicker } from "@/components/ui/datePicker";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
-import { useState, useEffect } from "react";
-import { DatePicker } from "@/components/ui/datePicker";
+import { useEffect, useState } from "react";
 
 interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const DateField = ({ question, value, onChange, error }: Props) => {
+const DateField = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedDate, setSelectedDate] = useState<globalThis.Date | undefined>(
     value ? new globalThis.Date(value) : undefined
   );
@@ -70,15 +71,21 @@ const DateField = ({ question, value, onChange, error }: Props) => {
         <Label
           htmlFor={question.id}
           className={cn(
-            "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            "font-medium text-foreground",
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}
         </Label>
 
         {question.description && (
-          <p className="text-md text-muted-foreground italic py-1">
+          <p
+            className={cn(
+              "text-muted-foreground italic py-1",
+              singlePage ? "text-lg" : "text-xl"
+            )}
+          >
             {question.description}
           </p>
         )}
@@ -92,9 +99,14 @@ const DateField = ({ question, value, onChange, error }: Props) => {
           minDate={minDate}
           maxDate={maxDate}
           className={cn(
-            hasError && 'border-destructive'
+            hasError && 'border-destructive',
+            singlePage ? "text-lg!" : "text-xl"
           )}
-          triggerClass={cn('shadow-none border border-muted bg-white! py-6 px-4 text-xl!', metadata.max ? "pr-10" : "", "w-full")}
+          triggerClass={cn(
+            'shadow-none border border-muted bg-white! py-6 px-4 text-xl!',
+            metadata.max ? "pr-10" : "", "w-full",
+            singlePage ? "text-lg!" : "text-xl"
+          )}
         />
 
         {validationError && (

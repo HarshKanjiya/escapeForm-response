@@ -8,10 +8,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  form?: Partial<Form>
+  form?: Partial<Form>,
+  singlePage?: boolean
 }
 
-const ScreenWelcome = ({ question, value, onChange, form }: Props) => {
+const ScreenWelcome = ({ question, value, onChange, form, singlePage }: Props) => {
   const handleStart = () => {
     if (onChange) {
       onChange(true);
@@ -19,7 +20,7 @@ const ScreenWelcome = ({ question, value, onChange, form }: Props) => {
   };
 
   // Use form data if available, otherwise fallback to question data
-  const title = form?.name || question.title;
+  const title = question.title;
   const description = form?.description || question.description;
   const logoUrl = form?.logoUrl;
 
@@ -41,7 +42,7 @@ const ScreenWelcome = ({ question, value, onChange, form }: Props) => {
 
       <div className="space-y-4">
         {title && (
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">
             {title}
           </h1>
         )}

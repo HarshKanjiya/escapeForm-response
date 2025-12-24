@@ -398,3 +398,7 @@ table tbody tr:last-child td:last-child {
 table thead tr {
   border: none !important;
 }
+
+.text-md {
+  font-size: 1rem;
+}

@@ -9,10 +9,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const RatingStar = ({ question, value, onChange, error }: Props) => {
+const RatingStar = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedValue, setSelectedValue] = useState<number | undefined>(
     typeof value === 'number' ? value : undefined
   );
@@ -44,7 +45,8 @@ const RatingStar = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}

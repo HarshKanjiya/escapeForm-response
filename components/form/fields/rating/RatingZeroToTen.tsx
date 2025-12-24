@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const RatingZeroToTen = ({ question, value, onChange, error }: Props) => {
+const RatingZeroToTen = ({ question, value, onChange, error, singlePage }: Props) => {
   const [selectedValue, setSelectedValue] = useState<number | undefined>(
     typeof value === 'number' ? value : undefined
   );
@@ -43,7 +43,8 @@ const RatingZeroToTen = ({ question, value, onChange, error }: Props) => {
           htmlFor={question.id}
           className={cn(
             "font-medium text-foreground text-xl",
-            question.required && "after:content-['*'] after:text-destructive"
+            question.required && "after:content-['*'] after:text-destructive",
+            singlePage ? "text-lg" : "text-xl"
           )}
         >
           {question.title}
@@ -61,20 +62,19 @@ const RatingZeroToTen = ({ question, value, onChange, error }: Props) => {
           {ratings.map((rating) => {
             const isSelected = selectedValue === rating;
             return (
-              <Button
+              <button
                 key={rating}
                 type="button"
-                variant={'outline'}
                 onClick={() => handleSelect(rating)}
                 className={cn(
-                  "h-11 hover:bg-primary-300",
+                  "text-left px-4 py-3 rounded-lg border transition-all duration-200 aspect-square",
                   isSelected
-                    ? "border-primary bg-primary-500 text-primary-foreground"
-                    : ""
+                    ? "border-primary/50 bg-primary/5"
+                    : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
                 )}
               >
                 {rating}
-              </Button>
+              </button>
             );
           })}
         </div>

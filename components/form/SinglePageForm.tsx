@@ -1,17 +1,17 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { FormWithQuestionsAndEdges, Question } from "@/types/common";
-import { useSession, signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import RenderFormField from "./RenderFormField";
 import SignInRequired from "./SignInRequired";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 interface SinglePageFormProps {
   form: FormWithQuestionsAndEdges
@@ -227,20 +227,21 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
     );
   }
 
-  // Show welcome screen if not started and welcome screen exists
-  if (!formStarted && welcomeScreen) {
-    return (
-      <div className="p-6 h-full w-full flex items-center justify-center">
-        <RenderFormField
-          question={welcomeScreen}
-          onChange={handleStartForm}
-          value={undefined}
-          error={undefined}
-          form={form}
-        />
-      </div>
-    );
-  }
+  // // Show welcome screen if not started and welcome screen exists
+  // console.log('welcomeScreen :>> ', welcomeScreen);
+  // if (!formStarted && welcomeScreen) {
+  //   return (
+  //     <div className="p-6 h-full w-full flex items-center justify-center">
+  //       <RenderFormField
+  //         question={welcomeScreen}
+  //         onChange={handleStartForm}
+  //         value={undefined}
+  //         error={undefined}
+  //         form={form}
+  //       />
+  //     </div>
+  //   );
+  // }
 
   // Show end screen if form completed and end screen exists
   if (formCompleted && endScreen) {
@@ -272,14 +273,14 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-2 md:p-6">
       <div className="h-full w-full flex flex-col">
         <ScrollArea className="flex-1 h-full">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-3 items-center">
               <div className="mx-auto max-w-3xl bg-white rounded-3xl corner-squircle border border-border/50 w-full">
-                <div className="px-6 md:px-8 pt-8 pb-6">
-                  <div className="flex gap-5 items-start">
+                <div className="px-4 py-4 sm:py-4 sm:px-6 md:px-8">
+                  <div className="flex gap-5 items-start max-sm:flex-col max-sm:items-center">
                     <div className="ring-4 ring-primary/20 shrink-0 overflow-hidden corner-squircle rounded-3xl border border-border/50 bg-background">
                       <Image
                         src={form.logoUrl || '/logo-light.svg'}
@@ -306,8 +307,8 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
 
                   {/* User Account Section */}
                   {session?.user && (
-                    <div className="mt-6 pt-6 border-t border-border/50">
-                      <div className="flex items-center justify-between gap-3">
+                    <div className="pt-4 mt-4 sm:mt-6 sm:pt-6 border-t border-border/50">
+                      <div className="flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-start">
                         <div className="flex items-center gap-3 min-w-0">
                           <Avatar className="h-8 w-8 shrink-0">
                             <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
@@ -351,10 +352,10 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
 
                 {/* Form Fields */}
                 {/* <form onSubmit={handleSubmit}> */}
-                <div className="px-6 md:px-8">
+                <div className="px-4 sm:p-6 md:p-8">
                   {questions.map((q, index) => (
                     <div key={q.id}>
-                      <div className="py-8 flex gap-2">
+                      <div className="py-2 sm:py-6 flex gap-2">
                         {/* <p className="bg-border/50 mt-3 rounded-3xl corner-squircle flex items-center justify-center p-4 h-8 w-8 aspect-square">
                           {index + 1}
                         </p> */}
@@ -363,6 +364,7 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
                           onChange={(v) => handleFieldChange(q.id, v)}
                           value={dataSource[q.id]}
                           error={errors[q.id]}
+                          singlePage={true}
                         />
                       </div>
                       {index < questions.length - 1 && (

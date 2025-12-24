@@ -20,10 +20,11 @@ interface Props {
   question: Question,
   value?: any,
   onChange?: (value: any) => void,
-  error?: string[]
+  error?: string[],
+  singlePage?: boolean
 }
 
-const UserAddress = ({ question, value, onChange, error }: Props) => {
+const UserAddress = ({ question, value, onChange, error, singlePage }: Props) => {
   const metadata = question.metadata || {};
 
   const [addressData, setAddressData] = useState<AddressValue>({
