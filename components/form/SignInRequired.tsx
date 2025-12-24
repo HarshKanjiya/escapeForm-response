@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { signIn } from "next-auth/react";
 
@@ -18,10 +19,10 @@ const SignInRequired = ({ status, onBack, showBackButton = false }: SignInRequir
         <div className="p-6 h-full w-full flex items-center justify-center">
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-8 max-w-md mx-auto p-8">
                 <div className="space-y-4">
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-xl md:text-3xl font-bold tracking-tight">
                         Sign in Required
                     </h1>
-                    <p className="text-lg text-muted-foreground">
+                    <p className="md:text-lg text-muted-foreground">
                         You must be authenticated in order to submit this form. Please sign in with your Google account.
                     </p>
                 </div>
@@ -29,7 +30,7 @@ const SignInRequired = ({ status, onBack, showBackButton = false }: SignInRequir
                 <Button variant={'secondary'} size={'xl'}
                     onClick={handleGoogleSignIn}
                     disabled={status === 'loading'}
-                    className="border border-muted shadow-xs"
+                    className="border border-muted rounded-2xl corner-squircle"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
@@ -46,6 +47,7 @@ const SignInRequired = ({ status, onBack, showBackButton = false }: SignInRequir
                         onClick={onBack}
                         className="text-muted-foreground"
                     >
+                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
                         Back to Welcome
                     </Button>
                 )}

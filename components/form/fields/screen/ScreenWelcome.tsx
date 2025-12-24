@@ -33,7 +33,7 @@ const ScreenWelcome = ({ question, value, onChange, form, singlePage }: Props) =
           alt="Form logo"
           width={80}
           height={80}
-          className="object-contain rounded-lg"
+          className="object-contain rounded-lg max-sm:w-20 max-sm:h-20"
           quality={100}
           priority
           unoptimized={false}
@@ -42,7 +42,7 @@ const ScreenWelcome = ({ question, value, onChange, form, singlePage }: Props) =
 
       <div className="space-y-4">
         {title && (
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">
+          <h1 className="text-xl sm:text-4xl font-bold tracking-tight">
             {title}
           </h1>
         )}
@@ -54,9 +54,8 @@ const ScreenWelcome = ({ question, value, onChange, form, singlePage }: Props) =
       </div>
 
       <Button
-        size="lg"
         onClick={handleStart}
-        className="flex items-center gap-2 text-lg px-8 py-6"
+        className="flex items-center gap-2 text-lg md:px-8 md:py-6"
       >
         Start Form
         <ArrowRightIcon className="w-5 h-5" />
