@@ -323,125 +323,120 @@ const StapperForm = ({ form }: StapperFormProps) => {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <ScrollArea className="flex-1">
-        <div className="py-8 px-4 sm:px-6 lg:px-8 min-h-full flex flex-col items-center justify-center">
-          <div className="max-w-2xl mx-auto w-full">
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Step {currentStep + 1} of {totalSteps}
-                </span>
-                <span className="text-sm font-medium text-primary">
-                  {Math.round(animatedProgress)}%
-                </span>
-              </div>
-              <Progress value={animatedProgress} className="h-2.5 shadow-sm" />
+      <div className="py-8 px-4 sm:px-6 lg:px-8 min-h-full flex flex-col items-center justify-center">
+        <div className="max-w-2xl mx-auto w-full">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-muted-foreground">
+                Step {currentStep + 1} of {totalSteps}
+              </span>
+              <span className="text-sm font-medium text-primary">
+                {Math.round(animatedProgress)}%
+              </span>
             </div>
+            <Progress value={animatedProgress} className="h-2.5 shadow-sm" />
+          </div>
 
-            {/* Form Content */}
-            <div className="relative min-h-[400px] mb-8">
-              <AnimatePresence mode="wait" custom={direction}>
+          {/* Form Content */}
+          <div className="relative h-auto min-h-[400px] mb-8">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={currentStep}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: {
+                    type: "tween",
+                    duration: 0.35,
+                    ease: [0.25, 0.19, 0.25, 0.94]
+                  },
+                  opacity: {
+                    duration: 0.35,
+                    ease: [0.25, 0.19, 0.25, 0.94]
+                  }
+                }}
+                className=" inset-0 w-full"
+              >
+                <div className="bg-card rounded-3xl corner-squircle border-2 border-muted px-4 sm:p-6 sm:py-3">
+                  {currentQuestion &&
+                    <RenderFormField
+                      key={currentQuestion.id}
+                      question={currentQuestion}
+                      onChange={(v) => handleFieldChange(currentQuestion.id, v)}
+                      value={dataSource[currentQuestion.id]}
+                      error={errors[currentQuestion.id]}
+                    />}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between pt-6 border-t border-t-accent-foreground/10">
+            <AnimatePresence>
+              {
+                !isFirstStep ?
+                  <motion.div
+                    key="back-button"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      size={metaData.actionBtnSize || 'lg'}
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={isFirstStep}
+                    >
+                      <ChevronLeftIcon className="w-4 h-4" />
+                      {metaData.backBtnLabel || 'Back'}
+                    </Button>
+                  </motion.div> : <span></span>
+              }
+            </AnimatePresence>
+
+            <AnimatePresence mode="wait">
+              {isLastStep ? (
                 <motion.div
-                  key={currentStep}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{
-                    x: {
-                      type: "tween",
-                      duration: 0.35,
-                      ease: [0.25, 0.19, 0.25, 0.94]
-                    },
-                    opacity: {
-                      duration: 0.35,
-                      ease: [0.25, 0.19, 0.25, 0.94]
-                    }
-                  }}
-                  className="absolute inset-0 w-full"
+                  key="submit-button"
+                  initial={{ opacity: 0, scale: 0.9, x: 30 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, x: 30 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <div className="bg-card rounded-lg shadow-sm border">
-                    {currentQuestion &&
-                      <RenderFormField
-                        key={currentQuestion.id}
-                        question={currentQuestion}
-                        onChange={(v) => handleFieldChange(currentQuestion.id, v)}
-                        value={dataSource[currentQuestion.id]}
-                        error={errors[currentQuestion.id]}
-                      />}
-                  </div>
+                  <Button
+                    size={metaData.actionBtnSize || 'lg'}
+                    onClick={handleSubmit}
+                  >
+                    <CheckIcon className="w-4 h-4" />
+                    {metaData.submitBtnLabel || 'Submit'}
+                  </Button>
                 </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-border/40">
-              <AnimatePresence>
-                {
-                  !isFirstStep ?
-                    <motion.div
-                      key="back-button"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Button
-                        size={metaData.actionBtnSize || 'lg'}
-                        variant="outline"
-                        onClick={handlePrevious}
-                        disabled={isFirstStep}
-                        className="flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <ChevronLeftIcon className="w-4 h-4" />
-                        {metaData.backBtnLabel || 'Back'}
-                      </Button>
-                    </motion.div> : <span></span>
-                }
-              </AnimatePresence>
-
-              <AnimatePresence mode="wait">
-                {isLastStep ? (
-                  <motion.div
-                    key="submit-button"
-                    initial={{ opacity: 0, scale: 0.9, x: 30 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, x: 30 }}
-                    transition={{ duration: 0.2 }}
+              ) : (
+                <motion.div
+                  key="next-button"
+                  initial={{ opacity: 0, scale: 0.9, x: -30 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, x: -30 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Button
+                    size={metaData.actionBtnSize || 'lg'}
+                    onClick={handleNext}
                   >
-                    <Button
-                      size={metaData.actionBtnSize || 'lg'}
-                      onClick={handleSubmit}
-                      className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      <CheckIcon className="w-4 h-4" />
-                      {metaData.submitBtnLabel || 'Submit'}
-                    </Button>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="next-button"
-                    initial={{ opacity: 0, scale: 0.9, x: -30 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, x: -30 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Button
-                      size={metaData.actionBtnSize || 'lg'}
-                      onClick={handleNext}
-                      className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      {metaData.nextBtnLabel || 'Next'}
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    {metaData.nextBtnLabel || 'Next'}
+                    <ChevronRightIcon className="w-4 h-4" />
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
