@@ -1,8 +1,23 @@
+import CTASection from '@/components/CTASectionb'
+import FeaturesSection from '@/components/FeaturesSection'
+import Footer from '@/components/Footer'
+import HeroSection from '@/components/HeroSection'
+import Navbar from '@/components/Navbar'
+import PlaygroundSection from '@/components/PlaygroundSection'
 
-export default function Home() {
+const Page = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center mx-auto">
+      <Navbar />
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <PlaygroundSection />
+        <CTASection />
+      </main>
+      <Footer />
     </div>
-  );
+  )
 }
+
+export default Page
