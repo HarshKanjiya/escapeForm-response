@@ -7,11 +7,13 @@ import { useState } from "react";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
-const TextShort = ({ question, value, onChange }: Props) => {
+const TextShort = ({ question, value, onChange, onNextQuestionTrigger }: Props) => {
   const [answer, setAnswer] = useState("");
 
   const metadata = question.metadata || {};
@@ -19,7 +21,14 @@ const TextShort = ({ question, value, onChange }: Props) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAnswer(e.target.value);
-    onChange?.(answer);
+    onChange?.(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onNextQuestionTrigger?.();
+    }
   };
 
 
@@ -51,6 +60,7 @@ const TextShort = ({ question, value, onChange }: Props) => {
           type="text"
           value={answer}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           placeholder={question.placeholder || "Type your answer here..."}
           required={question.required}
           minLength={metadata.min as number || undefined}

@@ -19,9 +19,11 @@ interface AddressValue {
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   error?: string[],
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const UserAddress = ({ question, value, onChange, error, singlePage }: Props) => {

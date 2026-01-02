@@ -7,11 +7,13 @@ import { useState } from 'react';
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
-const TextLong = ({ question, value, onChange }: Props) => {
+const TextLong = ({ question, value, onChange, onNextQuestionTrigger }: Props) => {
 
   const [answer, setAnswer] = useState("");
   // const [errors, setErrors] = useState<string[]>([]);
@@ -21,6 +23,7 @@ const TextLong = ({ question, value, onChange }: Props) => {
     setAnswer(e.target.value);
     onChange?.(answer);
   };
+
 
   return (
     <div

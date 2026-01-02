@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
-  error?: string[],
   singlePage?: boolean
+  error?: string[],
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const RatingStar = ({ question, value, onChange, error, singlePage }: Props) => {

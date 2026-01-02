@@ -7,9 +7,11 @@ import { useEffect, useState } from "react";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
-  error?: string[],
   singlePage?: boolean
+  error?: string[],
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const DateField = ({ question, value, onChange, error, singlePage }: Props) => {

@@ -5,9 +5,11 @@ import { CheckCircle2Icon, RefreshCwIcon } from "lucide-react"
 interface Props {
   question: Question,
   value?: any,
+  singlePage?: boolean
   onChange?: (value: any) => void,
   onReset?: () => void,
-  singlePage?: boolean
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const ScreenEnd = ({ question, value, onChange, onReset, singlePage }: Props) => {

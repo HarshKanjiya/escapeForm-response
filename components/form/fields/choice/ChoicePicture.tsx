@@ -8,9 +8,11 @@ import Image from "next/image";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   error?: string[],
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const ChoicePicture = ({ question, value, onChange, error, singlePage }: Props) => {

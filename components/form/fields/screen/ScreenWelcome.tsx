@@ -7,9 +7,10 @@ import Image from "next/image"
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   form?: Partial<Form>,
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const ScreenWelcome = ({ question, value, onChange, form, singlePage }: Props) => {

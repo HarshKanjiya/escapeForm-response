@@ -1,16 +1,17 @@
 "use client";
 
-import { FormWithQuestionsAndEdges } from "@/types/common";
-import { Question } from '@/types/common';
+import { apiConstants } from "@/constants/api.constants";
+import api from "@/lib/axios";
+import { showError } from "@/lib/utils";
+import { ActionResponse, FormWithQuestionsAndEdges, IFormResponse, Question } from "@/types/common";
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
-import { ScrollArea } from "../ui/scroll-area";
 import RenderFormField from "./RenderFormField";
-import SignInRequired from "./SignInRequired";
+import FormCompleted from "./formCompleted";
 
 interface StapperFormProps {
   form: FormWithQuestionsAndEdges
@@ -35,27 +36,35 @@ const slideVariants = {
 
 
 const StapperForm = ({ form }: StapperFormProps) => {
+
+  // MAIN STATE
   const { data: session, status } = useSession();
   const [dataSource, setDataSource] = useState<Record<string, string | number | boolean | string[]>>({});
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [welcomeScreen, setWelcomeScreen] = useState<Question | null>(null);
-  const [endScreen, setEndScreen] = useState<Question | null>(null);
   const [formStarted, setFormStarted] = useState(false);
   const [formCompleted, setFormCompleted] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
   const [animatedProgress, setAnimatedProgress] = useState(0);
+  const [isSubmiting, setIsSubmiting] = useState(false);
+  const [responseDb, setResponseDb] = useState<IFormResponse | null>(null);
+  const [initialSaveDone, setInitialSaveDone] = useState(false);
+
+  // const [welcomeScreen, setWelcomeScreen] = useState<Question | null>(null);
+  // const [endScreen, setEndScreen] = useState<Question | null>(null);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
+
+
   // Check if authentication is required
-  const requiresAuth = !form.multipleSubmissions || !form.allowAnonymous;
+  // const requiresAuth = !form.multipleSubmissions || !form.allowAnonymous;
 
   const currentQuestion = questions[currentStep];
   const totalSteps = questions.length;
   const isFirstStep = currentStep === 0;
-  const progress = ((currentStep + 1) / totalSteps) * 100;
+  const progress = (completedSteps.size / totalSteps) * 100;
   const isLastStep = currentStep === totalSteps - 1;
 
   const metaData = {
@@ -67,27 +76,34 @@ const StapperForm = ({ form }: StapperFormProps) => {
     submitBtnLabel: (typeof form.metadata === 'object' && !Array.isArray(form.metadata)) ? (form.metadata?.submitBtnLabel as string | undefined) ?? 'Submit' : 'Submit'
   }
 
+  // useEffect(() => {
+  //   if (!form) return;
+  //   const allQuestions = form.questions as Question[];
+
+  //   // Separate welcome and end screens from regular questions
+  //   const welcome = allQuestions.find(q => q.type === 'SCREEN_WELCOME');
+  //   const end = allQuestions.find(q => q.type === 'SCREEN_END');
+  //   const regularQuestions = allQuestions.filter(
+  //     q => q.type !== 'SCREEN_WELCOME' && q.type !== 'SCREEN_END'
+  //   );
+
+  //   // setWelcomeScreen(welcome || null);
+  //   // setEndScreen(end || null);
+  //   setQuestions(regularQuestions);
+
+  //   // If no welcome screen, start the form automatically
+  //   if (!welcome) {
+  //     setFormStarted(true);
+  //   }
+  // }, [])
+
+
   useEffect(() => {
     if (!form) return;
-    const allQuestions = form.questions as Question[];
-
-    // Separate welcome and end screens from regular questions
-    const welcome = allQuestions.find(q => q.type === 'SCREEN_WELCOME');
-    const end = allQuestions.find(q => q.type === 'SCREEN_END');
-    const regularQuestions = allQuestions.filter(
-      q => q.type !== 'SCREEN_WELCOME' && q.type !== 'SCREEN_END'
-    );
-
-    setWelcomeScreen(welcome || null);
-    setEndScreen(end || null);
+    const regularQuestions = form.questions as Question[];
     setQuestions(regularQuestions);
 
-    // If no welcome screen, start the form automatically
-    if (!welcome) {
-      setFormStarted(true);
-    }
-  }, [])
-
+  }, []);
 
   useEffect(() => {
     if (metaData.primaryColor) {
@@ -137,6 +153,31 @@ const StapperForm = ({ form }: StapperFormProps) => {
     return () => clearInterval(animationInterval);
   }, [progress]);
 
+  const initialFormSave = async () => {
+
+    const payload: Partial<IFormResponse> = {
+      formId: form.id,
+      userId: session?.user ? (session.user as any).googleId : null,
+      status: 'PARTIAL',
+      data: dataSource,
+      partialSave: true,
+    }
+    try {
+      const res = await api.post<ActionResponse>(apiConstants.response.add(), payload);
+      if (!res?.data?.success) {
+        console.log('Error submitting form:', res?.data?.message);
+        return;
+      }
+      setResponseDb(res.data.data as IFormResponse);
+
+    } catch (err) {
+      setIsSubmiting(false);
+      console.error('Error submitting form:', err);
+      return;
+    }
+
+  };
+
   const handleFieldChange = (questionId: string, value: string | number | boolean | string[]) => {
     setDataSource(prev => ({
       ...prev,
@@ -149,17 +190,30 @@ const StapperForm = ({ form }: StapperFormProps) => {
         [questionId]: []
       }));
     }
+
+    // Mark current step as completed when a value is entered
+    const hasValue = value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0);
+
+    if (hasValue) {
+      setCompletedSteps(prev => new Set([...prev, currentStep]));
+    }
   };
 
   const validateCurrentStep = (): boolean => {
-    const question = currentQuestion;
-    const value = dataSource[question.id];
+    // const question = currentQuestion;
+    // const value = dataSource[question?.id];
 
     return true;
   };
 
   const handleNext = () => {
     if (validateCurrentStep()) {
+      // Call initial save on first navigation with data
+      if (!initialSaveDone && Object.keys(dataSource).length > 0) {
+        setInitialSaveDone(true);
+        initialFormSave();
+      }
+
       setCompletedSteps(prev => new Set([...prev, currentStep]));
       if (!isLastStep) {
         setDirection(1); // Moving forward
@@ -182,23 +236,46 @@ const StapperForm = ({ form }: StapperFormProps) => {
     }
   };
 
-  const completeSubmission = () => {
+  const completeSubmission = async () => {
     console.log('Form submitted:', dataSource);
 
     // Log user info if signed in
-    if (session?.user) {
-      console.log('User submitting form:', {
-        googleUserId: (session.user as any).googleId,
-        email: session.user.email,
-        name: session.user.name,
-        formId: form.id,
-        // responseId will be generated when saving to database
-      });
+    // if (session?.user) {
+    //   console.log('User submitting form:', {
+    //     googleUserId: (session.user as any).googleId,
+    //     email: session.user.email,
+    //     name: session.user.name,
+    //     formId: form.id,
+    //     // responseId will be generated when saving to database
+    //   });
+    // }
+
+    const payload: Partial<IFormResponse> = {
+      id: responseDb ? responseDb.id : undefined,
+      formId: form.id,
+      userId: session?.user ? (session.user as any).googleId : null,
+      status: 'COMPLETED',
+      data: dataSource,
+    }
+    try {
+      setIsSubmiting(true);
+      const res = await api.put<ActionResponse>(apiConstants.response.add(), payload);
+      setIsSubmiting(false);
+      if (!res?.data?.success) {
+        showError(res?.data?.message || 'There was an error submitting the form. Please try again.');
+        return;
+      }
+
+      setFormCompleted(true);
+      setPendingSubmit(false);
+
+    } catch (err) {
+      setIsSubmiting(false);
+      console.error('Error submitting form:', err);
+      // showError(err?.message || 'There was an error submitting the form. Please try again.');
+      return;
     }
 
-    setFormCompleted(true);
-    setPendingSubmit(false);
-    // Handle form submission here
   };
 
   const handleGoogleSignIn = async () => {
@@ -207,10 +284,11 @@ const StapperForm = ({ form }: StapperFormProps) => {
 
   const handleStartForm = () => {
     // Check if authentication is required before starting the form
-    if (requiresAuth && !session) {
-      setPendingSubmit(true);
-      return;
-    }
+    // if (requiresAuth && !session) {
+    //   setPendingSubmit(true);
+    //   return;
+    // }
+
     setFormStarted(true);
   };
 
@@ -233,9 +311,9 @@ const StapperForm = ({ form }: StapperFormProps) => {
     setFormCompleted(false);
 
     // If welcome screen exists, go back to it, otherwise stay in form
-    if (welcomeScreen) {
-      setFormStarted(false);
-    }
+    // if (welcomeScreen) {
+    //   setFormStarted(false);
+    // }
   };
 
   const handleEndScreenNext = () => {
@@ -246,14 +324,12 @@ const StapperForm = ({ form }: StapperFormProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
+      if (event.key == 'Enter' && !event.ctrlKey && !event.shiftKey && !isLastStep) {
         event.preventDefault();
-        if (isLastStep) {
-          handleSubmit();
-        } else {
-          handleNext();
-        }
-      } else if (event.key === 'ArrowLeft' && event.ctrlKey) {
+        event.stopImmediatePropagation();
+        handleNext();
+      }
+      else if (event.key === 'ArrowLeft' && event.ctrlKey) {
         event.preventDefault();
         handlePrevious();
       } else if (event.key === 'ArrowRight' && event.ctrlKey) {
@@ -263,50 +339,50 @@ const StapperForm = ({ form }: StapperFormProps) => {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [currentStep, isLastStep]);
 
 
 
   // Show sign-in screen if authentication is required and user is not signed in
-  if (pendingSubmit && requiresAuth && !session) {
-    return (
-      <SignInRequired
-        status={status}
-        onBack={() => setPendingSubmit(false)}
-        showBackButton={!!welcomeScreen}
-      />
-    );
-  }
+  // if (pendingSubmit && requiresAuth && !session) {
+  //   return (
+  //     <SignInRequired
+  //       status={status}
+  //       onBack={() => setPendingSubmit(false)}
+  //       showBackButton={!!welcomeScreen}
+  //     />
+  //   );
+  // }
 
   // Show welcome screen if not started and welcome screen exists
-  if (!formStarted && welcomeScreen) {
-    return (
-      <div className="p-6 h-full w-full flex items-center justify-center">
-        <RenderFormField
-          question={welcomeScreen}
-          onChange={handleStartForm}
-          value={undefined}
-          error={undefined}
-          form={form}
-        />
-      </div>
-    );
-  }
+  // if (!formStarted && welcomeScreen) {
+  //   return (
+  //     <div className="p-6 h-full w-full flex items-center justify-center">
+  //       <RenderFormField
+  //         question={welcomeScreen}
+  //         onChange={handleStartForm}
+  //         value={undefined}
+  //         error={undefined}
+  //         form={form}
+  //       />
+  //     </div>
+  //   );
+  // }
 
   // Show end screen if form completed and end screen exists
-  if (formCompleted && endScreen) {
-    return (
-      <div className="p-6 h-full w-full flex items-center justify-center">
-        <RenderFormField
-          question={endScreen}
-          onChange={handleEndScreenNext}
-          value={undefined}
-          error={undefined}
-          onReset={form.multipleSubmissions ? handleResetForm : undefined}
-        />
-      </div>
-    );
-  }
+  // if (formCompleted && endScreen) {
+  //   return (
+  //     <div className="p-6 h-full w-full flex items-center justify-center">
+  //       <RenderFormField
+  //         question={endScreen}
+  //         onChange={handleEndScreenNext}
+  //         value={undefined}
+  //         error={undefined}
+  //         onReset={form.multipleSubmissions ? handleResetForm : undefined}
+  //       />
+  //     </div>
+  //   );
+  // }
 
   if (!questions?.length) {
     return (
@@ -325,116 +401,154 @@ const StapperForm = ({ form }: StapperFormProps) => {
     <div className="h-full w-full flex flex-col">
       <div className="py-8 px-4 sm:px-6 lg:px-8 min-h-full flex flex-col items-center justify-center">
         <div className="max-w-2xl mx-auto w-full">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">
-                Step {currentStep + 1} of {totalSteps}
-              </span>
-              <span className="text-sm font-medium text-primary">
-                {Math.round(animatedProgress)}%
-              </span>
-            </div>
-            <Progress value={animatedProgress} className="h-2.5 shadow-sm" />
-          </div>
-
-          {/* Form Content */}
-          <div className="relative h-auto min-h-[400px] mb-8">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={currentStep}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: {
-                    type: "tween",
-                    duration: 0.35,
-                    ease: [0.25, 0.19, 0.25, 0.94]
-                  },
-                  opacity: {
-                    duration: 0.35,
-                    ease: [0.25, 0.19, 0.25, 0.94]
-                  }
-                }}
-                className=" inset-0 w-full"
-              >
-                <div className="bg-card rounded-3xl corner-squircle border-2 border-muted px-4 sm:p-6 sm:py-3">
-                  {currentQuestion &&
-                    <RenderFormField
-                      key={currentQuestion.id}
-                      question={currentQuestion}
-                      onChange={(v) => handleFieldChange(currentQuestion.id, v)}
-                      value={dataSource[currentQuestion.id]}
-                      error={errors[currentQuestion.id]}
-                    />}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-t-accent-foreground/10">
-            <AnimatePresence>
-              {
-                !isFirstStep ?
-                  <motion.div
-                    key="back-button"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Button
-                      size={metaData.actionBtnSize || 'lg'}
-                      variant="outline"
-                      onClick={handlePrevious}
-                      disabled={isFirstStep}
-                    >
-                      <ChevronLeftIcon className="w-4 h-4" />
-                      {metaData.backBtnLabel || 'Back'}
-                    </Button>
-                  </motion.div> : <span></span>
-              }
-            </AnimatePresence>
-
-            <AnimatePresence mode="wait">
-              {isLastStep ? (
+          <AnimatePresence mode="wait">
+            {
+              formCompleted ?
                 <motion.div
-                  key="submit-button"
-                  initial={{ opacity: 0, scale: 0.9, x: 30 }}
+                  key={'form-completed'}
+                  initial={{ opacity: 0, scale: 1.05, x: 0 }}
                   animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, x: 30 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, scale: 0.95, x: 0 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeOut"
+                  }}
+                  className="w-full"
                 >
-                  <Button
-                    size={metaData.actionBtnSize || 'lg'}
-                    onClick={handleSubmit}
-                  >
-                    <CheckIcon className="w-4 h-4" />
-                    {metaData.submitBtnLabel || 'Submit'}
-                  </Button>
+                  <div className="sm:py-3">
+                    <FormCompleted formConfig={form} onRestart={handleResetForm} />
+                  </div>
                 </motion.div>
-              ) : (
+                :
                 <motion.div
-                  key="next-button"
-                  initial={{ opacity: 0, scale: 0.9, x: -30 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, x: -30 }}
-                  transition={{ duration: 0.2 }}
+                  key={'form-view'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeInOut"
+                  }}
+                  className="w-full"
                 >
-                  <Button
-                    size={metaData.actionBtnSize || 'lg'}
-                    onClick={handleNext}
-                  >
-                    {metaData.nextBtnLabel || 'Next'}
-                    <ChevronRightIcon className="w-4 h-4" />
-                  </Button>
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Step {currentStep + 1} of {totalSteps}
+                      </span>
+                      <span className="text-sm font-medium text-primary">
+                        {Math.round(animatedProgress)}%
+                      </span>
+                    </div>
+                    {/* <div className="bg-primary/20 w-full h-2.5 rounded-sm mb-4 relative overflow-hidden ">
+              <div className="absolute inset-0 bg-primary transition-all duration-250 ease-out border-r-6 border-r-accent-bg" style={{ width: `${(currentStep / totalSteps) * 100}%` }}></div>
+            </div> */}
+                    <Progress value={animatedProgress} className="h-2.5" />
+                  </div>
+
+                  {/* Form Content */}
+                  <div className="relative h-auto min-h-[400px] mb-8">
+                    <AnimatePresence mode="popLayout" custom={direction} initial={false}>
+                      <motion.div
+                        key={currentStep}
+                        custom={direction}
+                        variants={slideVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{
+                          x: {
+                            type: "tween",
+                            duration: 0.3,
+                            ease: [0.25, 0.19, 0.25, 0.94]
+                          },
+                          opacity: {
+                            duration: 0.3,
+                            ease: [0.25, 0.19, 0.25, 0.94]
+                          }
+                        }}
+                        className=" inset-0 w-full"
+                      >
+                        <div className="sm:py-3">
+                          {currentQuestion &&
+                            <RenderFormField
+                              key={currentQuestion.id}
+                              question={currentQuestion}
+                              onChange={(v) => handleFieldChange(currentQuestion.id, v)}
+                              onNextQuestionTrigger={handleNext}
+                              value={dataSource[currentQuestion.id]}
+                              error={errors[currentQuestion.id]}
+                            />}
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  <div className="flex items-center justify-between pt-6 border-t border-t-accent-foreground/10">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {
+                        !isFirstStep ?
+                          <motion.div
+                            key="back-button"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Button
+                              size={metaData.actionBtnSize || 'lg'}
+                              variant="outline"
+                              onClick={handlePrevious}
+                              disabled={isFirstStep || isSubmiting}
+                            >
+                              <ChevronLeftIcon className="w-4 h-4" />
+                              {metaData.backBtnLabel || 'Back'}
+                            </Button>
+                          </motion.div> : <span></span>
+                      }
+                    </AnimatePresence>
+
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {isLastStep ? (
+                        <motion.div
+                          key="submit-button"
+                          initial={{ opacity: 0, scale: 0.9, x: 30 }}
+                          animate={{ opacity: 1, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, x: 30 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Button
+                            size={metaData.actionBtnSize || 'lg'}
+                            onClick={handleSubmit}
+                            loading={isSubmiting}
+                          >
+                            <CheckIcon className="w-4 h-4" />
+                            {metaData.submitBtnLabel || 'Submit'}
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="next-button"
+                          initial={{ opacity: 0, scale: 0.9, x: -30 }}
+                          animate={{ opacity: 1, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, x: -30 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Button
+                            size={metaData.actionBtnSize || 'lg'}
+                            onClick={handleNext}
+                          >
+                            {metaData.nextBtnLabel || 'Next'}
+                            <ChevronRightIcon className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            }
+          </AnimatePresence>
         </div>
       </div>
     </div>

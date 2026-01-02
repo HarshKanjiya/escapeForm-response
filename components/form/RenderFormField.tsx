@@ -28,11 +28,13 @@ import UserDetails from './fields/userInfo/UserDetails'
 interface Props {
     question: Question,
     value?: any,
-    onChange?: (value: any) => void,
     error?: string[],
-    onReset?: () => void,
     form?: Partial<Form>,
     singlePage?: boolean
+    onChange?: (value: any) => void,
+    onReset?: () => void,
+    onError?: (errors: string[]) => void,
+    onNextQuestionTrigger?: () => void
 }
 
 const RenderFormField = (props: Props) => {

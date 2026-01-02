@@ -1,6 +1,6 @@
 // Common response types for server actions
 
-import { Form } from "@prisma/client"
+import { Form, Response, ResponseStatus } from "@prisma/client"
 import { Question as PrismaQuestion, QuestionOption } from "@prisma/client";
 
 export interface ActionResponse<T = unknown> {
@@ -103,4 +103,9 @@ export interface IQuestionMetadata {
     countryRequired?: boolean;                      // for address field
     postalCode?: boolean;                   // for address field
     postalCodeRequired?: boolean;                   // for address field
+}
+
+
+export type IFormResponse = Response & {
+    id?: string;
 }

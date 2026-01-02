@@ -10,9 +10,11 @@ import { COUNTRIES } from "@/constants/common";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   error?: string[],
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {

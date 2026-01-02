@@ -22,9 +22,8 @@ export const showToast = (message: string, description?: string, type: 'success'
         description,
         duration: 3000,
         action: true,
-        cancel: true,
-        position: 'bottom-right',
-        invert: true,
+        cancel: false,
+        position: 'top-center',
         richColors: true,
     });
 }

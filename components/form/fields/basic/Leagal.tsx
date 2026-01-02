@@ -7,9 +7,11 @@ import { useState, useEffect } from "react";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   error?: string[],
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const Legal = ({ question, value, onChange, error }: Props) => {

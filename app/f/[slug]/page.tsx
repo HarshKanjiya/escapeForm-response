@@ -48,13 +48,21 @@ const Page = async ({ params }: PageProps) => {
         return <div>Form not found</div>
     }
 
-    if (form.formPageType === FormPageType.SINGLE) {
-        // @ts-expect-error TS2322
-        return <SinglePageForm form={form} />
-    } else {
-        // @ts-expect-error TS2322
-        return <StapperForm form={form} />
-    }
+    return (
+        <div className="w-full h-screen px-6 py-4">
+            {
+                form.formPageType === FormPageType.SINGLE ?
+                    // @ts-expect-error TS2322
+                    <SinglePageForm form={form} /> :
+                    // @ts-expect-error TS2322
+                    <StapperForm form={form} />
+            }
+
+            <div className="fixed text-muted-foreground bg-white px-4 py-3 bottom-0 right-0 rounded-tl-3xl corner-squircle">
+                <span className="text-xs text-accent-foreground/70">Powered by</span> <a href="https://www.escform.com" target="_blank" rel="noreferrer" className="underline text-sm ml-1 underline-offset-2 font-medium">Escape Form</a>
+            </div>
+        </div>
+    )
 
 }
 

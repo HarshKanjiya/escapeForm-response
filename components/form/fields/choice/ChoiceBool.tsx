@@ -9,9 +9,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 interface Props {
   question: Question,
   value?: any,
-  onChange?: (value: any) => void,
   error?: string[],
   singlePage?: boolean
+  onChange?: (value: any) => void,
+  onError?: (errors: string[]) => void,
+  onNextQuestionTrigger?: () => void
 }
 
 const ChoiceBool = ({ question, value, onChange, error, singlePage }: Props) => {
