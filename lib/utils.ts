@@ -126,3 +126,27 @@ export const getRandomString = (len: number) => {
     }
     return randomString;
 }
+
+export const getChoiceItemAlphaInd = (index: number): string => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    // Single letter (0-25: A-Z)
+    if (index < 26) {
+        return alphabet[index] || '';
+    }
+    
+    // Two letters (26-701: AA-ZZ)
+    if (index < 702) {
+        const adjusted = index - 26;
+        const firstLetter = Math.floor(adjusted / 26);
+        const secondLetter = adjusted % 26;
+        return alphabet[firstLetter] + alphabet[secondLetter];
+    }
+    
+    // Three letters (702+: AAA-ZZZ)
+    const adjusted = index - 702;
+    const firstLetter = Math.floor(adjusted / 676); // 26^2
+    const secondLetter = Math.floor((adjusted % 676) / 26);
+    const thirdLetter = adjusted % 26;
+    return alphabet[firstLetter] + alphabet[secondLetter] + alphabet[thirdLetter];
+}

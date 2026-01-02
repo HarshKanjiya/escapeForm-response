@@ -18,15 +18,12 @@ interface Props {
 
 const TextLong = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
 
-  const [answer, setAnswer] = useState("");
-  // const [errors, setErrors] = useState<string[]>([]);
-
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setAnswer(e.target.value);
-    onChange?.(answer);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onNextQuestionTrigger?.(1);
+    }
   };
-
 
   return (
     <div
@@ -53,25 +50,25 @@ const TextLong = ({ question, value, isLastQuestion, singlePage, isFirstQuestion
       <div className="space-y-1 relative">
         <Textarea
           id={question.id}
-          value={answer}
-          onChange={handleInputChange}
+          value={value || ""}
+          onChange={(e) => onChange?.(e.target.value)}
           placeholder={question.placeholder || "Type your answer here..."}
           required={question.required}
           minLength={question.metadata?.min as number || undefined}
           maxLength={question.metadata?.max as number || undefined}
-          className={cn('border resize-none border-muted bg-transparent! shadow-none! py-2 min-h-12 px-2! text-xl! border-x-0 border-t-0 rounded-none border-b! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', question.metadata?.max ? "pr-10" : "", "w-full")}
+          className={cn('border resize-none border-muted bg-transparent! shadow-none! py-2 min-h-12 px-0! text-xl! border-x-0 border-t-0 rounded-none border-b! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', question.metadata?.max ? "md:pr-10" : "", "w-full")}
         ></Textarea>
         <div className='text-xs text-accent-foreground/50'>
           <i><span className='text-accent-foreground'>Shift + Enter</span> to add a new line</i>
         </div>
         {question.metadata?.max && typeof question.metadata.max === 'number' && (
-          <div className="flex justify-end absolute right-3 top-5 -translate-y-1/2">
+          <div className="flex justify-end absolute max-sm:-bottom-10 sm:top-1/2 -translate-y-1/2">
             <span className={cn(
               "text-sm text-muted-foreground",
-              answer.length > question.metadata.max * 0.9 && "text-orange-500",
-              answer.length >= question.metadata.max && "text-destructive"
+              (value || "").length > question.metadata.max * 0.9 && "text-orange-500",
+              (value || "").length >= question.metadata.max && "text-destructive"
             )}>
-              {answer.length} / {question.metadata.max}
+              {(value || "").length} / {question.metadata.max}
             </span>
           </div>
         )}

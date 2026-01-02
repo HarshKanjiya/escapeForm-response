@@ -4,11 +4,9 @@ import { apiConstants } from "@/constants/api.constants";
 import api from "@/lib/axios";
 import { showError } from "@/lib/utils";
 import { ActionResponse, FormWithQuestionsAndEdges, IFormResponse, Question } from "@/types/common";
-import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import RenderFormField from "./RenderFormField";
 import FormCompleted from "./formCompleted";
@@ -40,7 +38,6 @@ const StapperForm = ({ form }: StapperFormProps) => {
   // MAIN STATE
   const { data: session, status } = useSession();
   const [dataSource, setDataSource] = useState<Record<string, string | number | boolean | string[]>>({});
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
   const [formStarted, setFormStarted] = useState(false);
   const [formCompleted, setFormCompleted] = useState(false);
@@ -186,13 +183,6 @@ const StapperForm = ({ form }: StapperFormProps) => {
       [questionId]: value
     }));
 
-    if (errors[questionId]) {
-      setErrors(prev => ({
-        ...prev,
-        [questionId]: []
-      }));
-    }
-
     // Mark current step as completed when a value is entered
     const hasValue = value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0);
 
@@ -201,26 +191,16 @@ const StapperForm = ({ form }: StapperFormProps) => {
     }
   };
 
-  const validateCurrentStep = (): boolean => {
-    // const question = currentQuestion;
-    // const value = dataSource[question?.id];
-
-    return true;
-  };
-
   const handleNext = () => {
-    if (validateCurrentStep()) {
-      // Call initial save on first navigation with data
-      if (!initialSaveDone && Object.keys(dataSource).length > 0) {
-        setInitialSaveDone(true);
-        initialFormSave();
-      }
+    if (!initialSaveDone && Object.keys(dataSource).length > 0) {
+      setInitialSaveDone(true);
+      initialFormSave();
+    }
 
-      setCompletedSteps(prev => new Set([...prev, currentStep]));
-      if (!isLastStep) {
-        setDirection(1); // Moving forward
-        setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
-      }
+    setCompletedSteps(prev => new Set([...prev, currentStep]));
+    if (!isLastStep) {
+      setDirection(1); // Moving forward
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
     }
   };
 
@@ -232,10 +212,8 @@ const StapperForm = ({ form }: StapperFormProps) => {
   };
 
   const handleSubmit = () => {
-    if (validateCurrentStep()) {
-      setCompletedSteps(prev => new Set([...prev, currentStep]));
-      completeSubmission();
-    }
+    setCompletedSteps(prev => new Set([...prev, currentStep]));
+    completeSubmission();
   };
 
   const completeSubmission = async () => {
@@ -305,7 +283,6 @@ const StapperForm = ({ form }: StapperFormProps) => {
   const handleResetForm = () => {
     // Reset all form state
     setDataSource({});
-    setErrors({});
     setCurrentStep(0);
     setDirection(0);
     setAnimatedProgress(0);
@@ -401,7 +378,7 @@ const StapperForm = ({ form }: StapperFormProps) => {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <div className="min-h-full flex flex-col items-center justify-start pt-12 sm:pt-20 md:pt-28">
+      <div className="min-h-full flex flex-col items-center justify-start pt-8 sm:pt-20 md:pt-24">
         <div className="max-w-2xl mx-auto w-full">
           <AnimatePresence mode="wait">
             {

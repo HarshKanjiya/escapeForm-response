@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn, getChoiceItemAlphaInd } from "@/lib/utils";
 import { Question } from '@/types/common';
 import { useEffect, useState } from "react";
+import { ChoiceItem } from "./ChoiceItem";
+import { QuestionOption } from "@prisma/client";
 
 interface Props {
   question: Question,
@@ -16,14 +19,22 @@ interface Props {
 }
 
 const ChoiceMultiple = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>(
-    Array.isArray(value) ? value : []
-  );
+  
+  const [selectedValues, setSelectedValues] = useState<string[]>(Array.isArray(value) ? value : []);
+  const [options, setOptions] = useState<QuestionOption[]>([]);
 
-  const options = question.options?.filter((i) => i.label?.trim().length) || [];
   const metadata = question.metadata || {};
   const minSelections = typeof metadata.min === 'number' ? metadata.min : undefined;
   const maxSelections = typeof metadata.max === 'number' ? metadata.max : undefined;
+
+
+  useEffect(() => {
+    const fetchedOptions = question.options?.filter((i) => i.label?.trim().length) || [];
+    fetchedOptions.map((option, index) => {
+      option['ind'] = getChoiceItemAlphaInd(index);
+    });
+    setOptions(fetchedOptions);
+  }, [question]);
 
   useEffect(() => {
     if (Array.isArray(value)) {
@@ -83,46 +94,28 @@ const ChoiceMultiple = ({ question, value, isLastQuestion, singlePage, isFirstQu
         )}
       </div>
 
-      <div className="space-y-3">
-        {options.map((option, index) => {
-          const isSelected = selectedValues.includes(option.value);
-          const isMaxReached = maxSelections ? selectedValues.length >= maxSelections : false;
-          const isDisabled = !isSelected && isMaxReached;
-
-          return (
-            <button
-              key={index}
-              type="button"
-              onClick={() => handleToggle(option.value)}
-              disabled={isDisabled}
-              className={cn(
-                "w-full text-left px-4 py-3 rounded-lg border transition-all duration-200",
-                isSelected
-                  ? "border-primary/50 bg-primary/5"
-                  : isDisabled
-                    ? "border-border/40 bg-muted/50 opacity-60 cursor-not-allowed"
-                    : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
-              )}
-            >
-              <span
-                className={cn(
-                  "text-sm font-medium leading-relaxed",
-                  isDisabled ? "text-muted-foreground" : "text-foreground"
-                )}
-              >
-                {option.label}
-              </span>
-            </button>
-          );
-        })}
+      <div className="space-y-2">
+        {selectedValues.length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground justify-end ">
+            <span className="font-medium text-foreground">{selectedValues.length}</span>
+            <span>option{selectedValues.length !== 1 ? 's' : ''} selected</span>
+          </div>
+        )}
+        {options?.length > 0 ? (
+          <ScrollArea className="h-[40dvh] sm:h-[50dvh]">
+            <div className="flex flex-col gap-2 px-4">
+              {
+                options?.map((option, index) =>
+                  <ChoiceItem option={option} isSelected={selectedValues.includes(option.id)} onSelect={handleToggle} key={index} />)
+              }
+            </div>
+          </ScrollArea>
+        ) : (
+          <div className="text-sm text-muted-foreground/30 italic p-4 text-center border-dotted border-2 rounded-lg">
+            No options added...
+          </div>
+        )}
       </div>
-
-      {selectedValues.length > 0 && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
-          <span className="font-medium text-foreground">{selectedValues.length}</span>
-          <span>option{selectedValues.length !== 1 ? 's' : ''} selected</span>
-        </div>
-      )}
 
       {options.length === 0 && (
         <div className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border/40 rounded-lg">

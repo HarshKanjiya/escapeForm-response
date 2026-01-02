@@ -1,7 +1,6 @@
 import SinglePageForm from "@/components/form/SinglePageForm";
 import StapperForm from "@/components/form/StapperForm";
 import prisma from "@/lib/prisma";
-import { FormPageType } from "@prisma/client";
 
 interface PageProps {
     params: Promise<{ slug: string }>
@@ -38,6 +37,9 @@ const Page = async ({ params }: PageProps) => {
             questions: {
                 include: {
                     options: true
+                },
+                orderBy: {
+                    sortOrder: "asc"
                 }
             },
             edges: true
@@ -63,7 +65,7 @@ const Page = async ({ params }: PageProps) => {
             {/* <div className="fixed text-muted-foreground bg-white px-4 py-3 bottom-0 right-0 rounded-tl-3xl corner-squircle">
                 <span className="text-xs text-accent-foreground/70">Powered by</span> <a href="https://www.escform.com" target="_blank" rel="noreferrer" className="underline text-sm ml-1 underline-offset-2 font-medium">Escape Form</a>
             </div> */}
-            <div className="fixed text-muted-foreground w-full px-4 py-3 bottom-0 right-0 left-0 flex items-center justify-center rounded-tl-3xl corner-squircle">
+            <div className="fixed text-muted-foreground w-full px-4 py-3 bottom-0 right-0 left-0 flex items-center justify-center rounded-tl-3xl corner-squircle bg-linear-0 from-white to-transparent">
                 <span className="text-xs text-accent-foreground/70">Powered by</span> <a href="https://www.escform.com" target="_blank" rel="noreferrer" className="underline text-sm ml-1 underline-offset-2 font-medium">Escape Form</a>
             </div>
         </div>

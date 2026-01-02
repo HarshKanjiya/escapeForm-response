@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { RadioGroup } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Question } from '@/types/common'
+import { QuestionOption } from '@prisma/client';
+import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -18,37 +21,41 @@ interface Props {
 
 const ChoiceCheckbox = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
 
-  const [selectedOptions, setSelectedOptions] = useState<string[]>(
-    Array.isArray(value) ? value : []
-  );
+  const [selectedValues, setSelectedValues] = useState<string[]>(Array.isArray(value) ? value : []);
+  const [options, setOptions] = useState<QuestionOption[]>([]);
 
-  const options = question.options?.filter((i) => i.label?.trim().length) || [];
   const metadata = question.metadata || {};
   const minSelections = typeof metadata.min === 'number' ? metadata.min : undefined;
   const maxSelections = typeof metadata.max === 'number' ? metadata.max : undefined;
 
-  // Update internal state when external value changes
+  useEffect(() => {
+    const fetchedOptions = question.options?.filter((i) => i.label?.trim().length) || [];
+    setOptions(fetchedOptions);
+  }, [question]);
+
   useEffect(() => {
     if (Array.isArray(value)) {
-      setSelectedOptions(value);
+      setSelectedValues(value);
     }
   }, [value]);
 
-  const handleOptionChange = (optionValue: string, checked: boolean) => {
-    let newSelectedOptions: string[];
+  const handleToggle = (optionValue: string) => {
+    let newValues: string[];
 
-    if (checked) {
-      // Check max limit before adding
-      if (maxSelections && selectedOptions.length >= maxSelections) {
+    if (selectedValues.includes(optionValue)) {
+      // Deselect
+      newValues = selectedValues.filter(v => v !== optionValue);
+    } else {
+      // Select
+      if (maxSelections && selectedValues.length >= maxSelections) {
+        // Already at max selections, don't add more
         return;
       }
-      newSelectedOptions = [...selectedOptions, optionValue];
-    } else {
-      newSelectedOptions = selectedOptions.filter(item => item !== optionValue);
+      newValues = [...selectedValues, optionValue];
     }
 
-    setSelectedOptions(newSelectedOptions);
-    onChange?.(newSelectedOptions);
+    setSelectedValues(newValues);
+    onChange?.(newValues);
   };
 
 
@@ -84,60 +91,31 @@ const ChoiceCheckbox = ({ question, value, isLastQuestion, singlePage, isFirstQu
         )}
       </div>
 
-      <div className="space-y-3">
-        {options.length > 0 ? (
-          options.map((option, index) => {
-            const isChecked = selectedOptions.includes(option.value);
-            const isMaxReached = maxSelections ? selectedOptions.length >= maxSelections : false;
-            const isDisabled = !isChecked && isMaxReached;
+      <div className="space-y-2">
+        {selectedValues.length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground justify-end ">
+            <span className="font-medium text-foreground">{selectedValues.length}</span>
+            <span>option{selectedValues.length !== 1 ? 's' : ''} selected</span>
+          </div>
+        )}
 
-            return (
-              <div
-                key={index}
-                className={cn(
-                  "flex items-center space-x-4 pl-4 rounded-lg border transition-all duration-200",
-                  isChecked
-                    ? "border-primary/50 bg-primary/5"
-                    : isDisabled
-                      ? "border-border/40 bg-muted/50 opacity-60"
-                      : "border-border/40 hover:border-border/60 hover:bg-accent/5"
-                )}
-              >
-                <Checkbox
-                  id={`${question.id}-${index}`}
-                  checked={isChecked}
-                  disabled={isDisabled}
-                  onCheckedChange={(checked) =>
-                    handleOptionChange(option.value, checked === true)
-                  }
-                  className="shrink-0"
-                />
-                <Label
-                  htmlFor={`${question.id}-${index}`}
-                  className={cn(
-                    "text-sm font-medium py-3 cursor-pointer flex-1 leading-relaxed",
-                    isDisabled ? "cursor-not-allowed text-muted-foreground" : "text-foreground"
-                  )}
-                >
-                  {option.label}
-                </Label>
+        {options?.length > 0 ? (
+          <ScrollArea className="h-[40dvh] sm:h-[50dvh]">
+            <div className="w-full" role="group" aria-label="Checkbox options">
+              <div className="flex flex-col gap-2 px-4">
+                {
+                  options?.map((option, index) =>
+                    <CheckboxItem option={option} isSelected={selectedValues.includes(option.id)} onSelect={handleToggle} key={index} />)
+                }
               </div>
-            );
-          })
+            </div>
+          </ScrollArea>
         ) : (
-          <div className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border/40 rounded-lg">
-            No options available
+          <div className="text-sm text-muted-foreground/30 italic p-4 text-center border-dotted border-2 rounded-lg">
+            No options added...
           </div>
         )}
       </div>
-
-      {/* Selected count indicator */}
-      {selectedOptions.length > 0 && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
-          <span className="font-medium text-foreground">{selectedOptions.length}</span>
-          <span>option{selectedOptions.length !== 1 ? 's' : ''} selected</span>
-        </div>
-      )}
 
       <div className="flex w-full items-center justify-end pt-12 gap-4">
         {
@@ -160,5 +138,33 @@ const ChoiceCheckbox = ({ question, value, isLastQuestion, singlePage, isFirstQu
     </div>
   );
 }
+
+const CheckboxItem = ({ option, isSelected, onSelect }: { option: QuestionOption, isSelected: boolean, onSelect: (choice: string) => void }) => {
+  return (
+    <div
+      onClick={() => onSelect(option.id)}
+      className={cn(
+        "w-full flex items-center px-4 py-3 text-primary border border-primary/10 bg-primary/5 rounded-lg max-sm:text-sm cursor-pointer",
+        isSelected
+          ? "border-primary/50 bg-primary/15"
+          : "hover:border-primary/30 hover:bg-primary/5"
+      )}>
+      <Checkbox
+        id={option.id}
+        checked={isSelected}
+        onCheckedChange={(checked) => {
+          return false;
+        }}
+        className="mr-3 pointer-events-none"
+      />
+      <label
+        htmlFor={option.id}
+        className="flex items-center flex-1 cursor-pointer pointer-events-none"
+      >
+        {option.label}
+      </label>
+    </div>
+  )
+};
 
 export default ChoiceCheckbox

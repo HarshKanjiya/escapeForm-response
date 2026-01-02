@@ -1,10 +1,7 @@
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
-import { useState, useEffect } from "react";
-import { CheckCircle2Icon, CircleIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Props {
   question: Question,
@@ -18,21 +15,6 @@ interface Props {
 }
 
 const ChoiceBool = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
-  const [selectedValue, setSelectedValue] = useState<boolean | undefined>(
-    typeof value === 'boolean' ? value : undefined
-  );
-
-  useEffect(() => {
-    if (typeof value === 'boolean') {
-      setSelectedValue(value);
-    }
-  }, [value]);
-
-  const handleSelect = (choice: boolean) => {
-    setSelectedValue(choice);
-    onChange?.(choice);
-  };
-
 
   return (
     <div className='w-full space-y-4 p-2 pb-5'>
@@ -58,22 +40,22 @@ const ChoiceBool = ({ question, value, isLastQuestion, singlePage, isFirstQuesti
       <div className="flex flex-col gap-2">
         <button
           type="button"
-          onClick={() => handleSelect(true)}
+          onClick={() => onChange(true)}
           className={cn(
-            "w-full text-left px-4 py-3 rounded-lg border transition-all duration-200",
-            selectedValue === true
-              ? "border-primary/50 bg-primary/5"
-              : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
+            "w-full flex px-4 py-3 text-primary border border-primary/10 bg-primary/5 rounded-lg max-sm:text-sm",
+            value === true
+              ? "border-primary/50 bg-primary/15"
+              : "hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
           )}
         >Yes</button>
         <button
           type="button"
-          onClick={() => handleSelect(false)}
+          onClick={() => onChange(false)}
           className={cn(
-            "w-full text-left px-4 py-3 rounded-lg border transition-all duration-200",
-            selectedValue === false
-              ? "border-primary/50 bg-primary/5"
-              : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
+            "w-full flex px-4 py-3 text-primary border border-primary/10 bg-primary/5 rounded-lg max-sm:text-sm",
+            value === false
+              ? "border-primary/50 bg-primary/15"
+              : "hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
           )}
         >No</button>
       </div>

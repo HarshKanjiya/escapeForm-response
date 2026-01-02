@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from "@/types/common";
-import { useState } from "react";
 
 interface Props {
   question: Question,
@@ -17,15 +16,8 @@ interface Props {
 }
 
 const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
-  const [answer, setAnswer] = useState("");
 
   const metadata = question.metadata || {};
-
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAnswer(e.target.value);
-    onChange?.(e.target.value);
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -61,25 +53,25 @@ const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         <Input
           id={question.id}
           type="text"
-          value={answer}
-          onChange={handleInputChange}
+          value={value || ""}
+          onChange={(e) => onChange?.(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={question.placeholder || "Type your answer here..."}
           required={question.required}
           minLength={metadata.min as number || undefined}
           maxLength={metadata.max as number || undefined}
           pattern={metadata.pattern || undefined}
-          className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-2 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', metadata.max ? "pr-10" : "", "w-full")}
+          className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-0 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', metadata.max ? "md:pr-10" : "", "w-full")}
         />
 
         {metadata.max && typeof metadata.max === 'number' && (
-          <div className="flex justify-end absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="flex justify-end absolute right-0 max-sm:-bottom-10 sm:top-1/2 -translate-y-1/2">
             <small className={cn(
               "text-sm text-muted-foreground",
-              answer.length > metadata.max && "text-orange-500",
-              answer.length >= metadata.max && "text-destructive"
+              (value || "").length > metadata.max && "text-orange-500",
+              (value || "").length >= metadata.max && "text-destructive"
             )}>
-              {answer.length} / {metadata.max}
+              {(value || "").length} / {metadata.max}
             </small>
           </div>
         )}

@@ -57,8 +57,7 @@ const ChoiceDropDown = ({ question, value, isLastQuestion, singlePage, isFirstQu
       <Select value={selectedValue} onValueChange={handleValueChange}>
         <SelectTrigger
           className={cn(
-            "w-full py-6 text-lg",
-            //  && "border-destructive"
+            "border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 w-full shadow-none px-0 pr-2",
           )}
         >
           <SelectValue placeholder={question.placeholder || "Select an option..."} />
@@ -73,7 +72,7 @@ const ChoiceDropDown = ({ question, value, isLastQuestion, singlePage, isFirstQu
               <SelectItem
                 key={index}
                 value={option.value}
-                className="cursor-pointer py-3"
+                className={cn('cursor-pointer py-3 px-3!', selectedValue === option.value && 'bg-primary/10!')}
               >
                 {option.label}
               </SelectItem>

@@ -116,11 +116,11 @@ const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuest
             onBlur={handleBlur}
             placeholder={question.placeholder || "Type your answer here..."}
             required={question.required}
-            className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-2 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', max || min ? "pr-10" : "", "w-full")}
+            className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-0 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', max || min ? "pr-10" : "", "w-full")}
             aria-invalid={validationError?.length > 0}
           />
           {(max || min) && (
-            <div className="flex justify-start absolute right-1 bottom-0 -translate-y-1/2">
+            <div className="flex justify-start absolute right-0 -bottom-9 sm:bottom-0 -translate-y-1/2">
               <span className={cn(
                 "flex gap-3"
               )}>

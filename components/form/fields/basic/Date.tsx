@@ -21,6 +21,7 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
     value ? new globalThis.Date(value) : undefined
   );
   const [validationError, setValidationError] = useState<string>("");
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   const metadata = question.metadata || {};
   const minDate = metadata.min ? new globalThis.Date(metadata.min as string | number) : undefined;
@@ -67,6 +68,17 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
     }
   };
 
+  const handleError = (): boolean => {
+
+    return true;
+  }
+
+  const onNextClick = () => {
+    // setIsSubmitted(true);
+    // if (handleError()) return;
+    onNextQuestionTrigger?.(1);
+  }
+
   return (
     <div className='w-full space-y-2'>
       <div className="py-2">
@@ -105,7 +117,7 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
             singlePage ? "text-lg!" : "text-xl"
           )}
           triggerClass={cn(
-            'border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-2 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 active:scale-none',
+            'border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-1! text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 active:scale-none',
             metadata.max ? "pr-10" : "", "w-full",
             singlePage ? "text-lg!" : "text-xl"
           )}
@@ -146,7 +158,7 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
             <Button size="xl" onClick={() => onFormSubmit?.()}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick}>
               Next
             </Button>
         }
