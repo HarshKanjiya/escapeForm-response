@@ -1,8 +1,8 @@
 import { Question } from '@/types/common'
 import { Form, QuestionType } from '@prisma/client'
-import Date from './fields/basic/Date'
+import DateField from './fields/basic/Date'
 import Leagal from './fields/basic/Leagal'
-import Number from './fields/basic/Number'
+import NumberField from './fields/basic/Number'
 import TextLong from './fields/basic/TextLong'
 import TextShort from './fields/basic/TextShort'
 import ChoiceBool from './fields/choice/ChoiceBool'
@@ -28,27 +28,32 @@ import UserDetails from './fields/userInfo/UserDetails'
 interface Props {
     question: Question,
     value?: any,
-    error?: string[],
     form?: Partial<Form>,
-    singlePage?: boolean
+    singlePage?: boolean,
+    isFirstQuestion?: boolean,
+    isLastQuestion?: boolean,
     onChange?: (value: any) => void,
     onReset?: () => void,
-    onError?: (errors: string[]) => void,
-    onNextQuestionTrigger?: () => void
+    onNextQuestionTrigger?: (dir: 1 | -1) => void,
+    onFormSubmit?: () => void
 }
 
 const RenderFormField = (props: Props) => {
     switch (props.question.type) {
-        case QuestionType.DATE:
-            return <Date {...props} />
-        case QuestionType.LEAGAL:
-            return <Leagal {...props} />
-        case QuestionType.NUMBER:
-            return <Number {...props} />
+
+        // IMPROVED
         case QuestionType.TEXT_LONG:
             return <TextLong {...props} />
         case QuestionType.TEXT_SHORT:
             return <TextShort {...props} />
+        case QuestionType.DATE:
+            return <DateField {...props} />
+
+        // PENDING
+        case QuestionType.LEAGAL:
+            return <Leagal {...props} />
+        case QuestionType.NUMBER:
+            return <NumberField {...props} />
         case QuestionType.CHOICE_BOOL:
             return <ChoiceBool {...props} />
         case QuestionType.CHOICE_CHECKBOX:
@@ -57,20 +62,28 @@ const RenderFormField = (props: Props) => {
             return <ChoiceDropDown {...props} />
         case QuestionType.CHOICE_MULTIPLE:
             return <ChoiceMultiple {...props} />
-        case QuestionType.CHOICE_PICTURE:
-            return <ChoicePicture {...props} />
         case QuestionType.CHOICE_SINGLE:
             return <ChoiceSingle {...props} />
-        case QuestionType.FILE_ANY:
-            return <FileAny {...props} />
-        case QuestionType.FILE_IMAGE_OR_VIDEO:
-            return <FileImgOrVideo {...props} />
         case QuestionType.INFO_EMAIL:
             return <InfoEmail {...props} />
         case QuestionType.INFO_PHONE:
             return <InfoPhone {...props} />
         case QuestionType.INFO_URL:
             return <InfoUrl {...props} />
+        case QuestionType.RATING_RANK:
+            return <RatingRank {...props} />
+        case QuestionType.RATING_STAR:
+            return <RatingStar {...props} />
+        case QuestionType.RATING_ZERO_TO_TEN:
+            return <RatingZeroToTen {...props} />
+
+        // FUTURE
+        case QuestionType.CHOICE_PICTURE:
+            return <ChoicePicture {...props} />
+        case QuestionType.FILE_ANY:
+            return <FileAny {...props} />
+        case QuestionType.FILE_IMAGE_OR_VIDEO:
+            return <FileImgOrVideo {...props} />
         case QuestionType.USER_ADDRESS:
             return <UserAddress {...props} />
         case QuestionType.USER_DETAIL:
@@ -81,12 +94,7 @@ const RenderFormField = (props: Props) => {
             return <ScreenStatement {...props} />
         case QuestionType.SCREEN_END:
             return <ScreenEnd {...props} />
-        case QuestionType.RATING_RANK:
-            return <RatingRank {...props} />
-        case QuestionType.RATING_STAR:
-            return <RatingStar {...props} />
-        case QuestionType.RATING_ZERO_TO_TEN:
-            return <RatingZeroToTen {...props} />
+
         // case QuestionType.REDIRECT_TO_URL:
         // return < {...props} />
         default:

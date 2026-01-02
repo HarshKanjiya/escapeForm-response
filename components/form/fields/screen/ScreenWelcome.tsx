@@ -10,7 +10,7 @@ interface Props {
   form?: Partial<Form>,
   singlePage?: boolean
   onChange?: (value: any) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
 }
 
 const ScreenWelcome = ({ question, value, onChange, form, singlePage }: Props) => {

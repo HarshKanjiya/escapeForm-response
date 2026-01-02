@@ -7,7 +7,7 @@ interface Props {
   singlePage?: boolean
   onChange?: (value: any) => void,
   onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
 }
 
 const ScreenStatement = ({ question, value, onChange }: Props) => {

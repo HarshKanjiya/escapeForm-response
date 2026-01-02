@@ -9,7 +9,7 @@ interface Props {
   onChange?: (value: any) => void,
   onReset?: () => void,
   onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
 }
 
 const ScreenEnd = ({ question, value, onChange, onReset, singlePage }: Props) => {

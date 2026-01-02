@@ -23,7 +23,7 @@ interface Props {
   singlePage?: boolean
   onChange?: (value: any) => void,
   onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
 }
 
 const UserAddress = ({ question, value, onChange, error, singlePage }: Props) => {

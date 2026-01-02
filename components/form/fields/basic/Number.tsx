@@ -1,20 +1,22 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   question: Question,
   value?: any,
-  error?: string[],
   singlePage?: boolean
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const Number = ({ question, value, onChange, error }: Props) => {
+const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [answer, setAnswer] = useState<string>(value?.toString() || "");
   const [validationError, setValidationError] = useState<string>("");
 
@@ -33,7 +35,6 @@ const Number = ({ question, value, onChange, error }: Props) => {
       setValidationError("");
       return "";
     }
-
     const numValue = parseFloat(val);
 
     if (isNaN(numValue)) {
@@ -84,10 +85,8 @@ const Number = ({ question, value, onChange, error }: Props) => {
     }
   };
 
-  const hasError = validationError || (error && error.length > 0);
-
   return (
-    <div className='w-full space-y-2 p-2 pb-5'>
+    <div className='w-full space-y-2'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -106,51 +105,58 @@ const Number = ({ question, value, onChange, error }: Props) => {
         )}
       </div>
 
-      <div className="space-y-1">
-        <Input
-          id={question.id}
-          type="text"
-          inputMode="decimal"
-          value={answer}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          placeholder={question.placeholder || "Type your answer here..."}
-          required={question.required}
-          className={cn(
-            'border border-muted bg-white! py-6 px-4 text-xl w-full',
-            hasError && 'border-destructive focus-visible:ring-destructive'
+      <div className="space-y-1 relative">
+        <div className="relative">
+          <Input
+            id={question.id}
+            type="text"
+            inputMode="decimal"
+            value={answer}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            placeholder={question.placeholder || "Type your answer here..."}
+            required={question.required}
+            className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-2 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', max || min ? "pr-10" : "", "w-full")}
+            aria-invalid={validationError?.length > 0}
+          />
+          {(max || min) && (
+            <div className="flex justify-start absolute right-1 bottom-0 -translate-y-1/2">
+              <span className={cn(
+                "flex gap-3"
+              )}>
+                <small className="text-sm text-muted-foreground ">{min !== undefined && `Min: ${min} `}</small> <small className="text-sm text-muted-foreground ">{max !== undefined && `Max: ${max}`}</small>
+              </span>
+            </div>
           )}
-          aria-invalid={!!hasError}
-        />
+        </div>
 
         {validationError && (
-          <p className="text-sm text-destructive mt-1">
+          <small className="text-sm text-destructive mt-1">
             {validationError}
-          </p>
-        )}
-
-        {error && error.length > 0 && !validationError && (
-          <p className="text-sm text-destructive mt-1">
-            {error[0]}
-          </p>
+          </small>
         )}
       </div>
 
-      {(min !== undefined || max !== undefined) && (
-        <div className="text-xs text-muted-foreground space-y-1 pt-2">
-          {min !== undefined && max !== undefined && (
-            <p>Value must be between {min} and {max}</p>
-          )}
-          {min !== undefined && max === undefined && (
-            <p>Minimum value: {min}</p>
-          )}
-          {max !== undefined && min === undefined && (
-            <p>Maximum value: {max}</p>
-          )}
-        </div>
-      )}
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   )
 }
 
-export default Number
+export default NumberField

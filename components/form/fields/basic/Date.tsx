@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/datePicker";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -8,13 +9,14 @@ interface Props {
   question: Question,
   value?: any,
   singlePage?: boolean
-  error?: string[],
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const DateField = ({ question, value, onChange, error, singlePage }: Props) => {
+const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [selectedDate, setSelectedDate] = useState<globalThis.Date | undefined>(
     value ? new globalThis.Date(value) : undefined
   );
@@ -65,10 +67,8 @@ const DateField = ({ question, value, onChange, error, singlePage }: Props) => {
     }
   };
 
-  const hasError = validationError || (error && error.length > 0);
-
   return (
-    <div className='w-full space-y-2 p-2 pb-5'>
+    <div className='w-full space-y-2'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -101,11 +101,11 @@ const DateField = ({ question, value, onChange, error, singlePage }: Props) => {
           minDate={minDate}
           maxDate={maxDate}
           className={cn(
-            hasError && 'border-destructive',
+            validationError && 'border-destructive',
             singlePage ? "text-lg!" : "text-xl"
           )}
           triggerClass={cn(
-            'shadow-none border border-muted bg-white! py-6 px-4 text-xl!',
+            'border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-2 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 active:scale-none',
             metadata.max ? "pr-10" : "", "w-full",
             singlePage ? "text-lg!" : "text-xl"
           )}
@@ -117,11 +117,6 @@ const DateField = ({ question, value, onChange, error, singlePage }: Props) => {
           </p>
         )}
 
-        {error && error.length > 0 && !validationError && (
-          <p className="text-sm text-destructive mt-1">
-            {error[0]}
-          </p>
-        )}
       </div>
 
       {(minDate || maxDate) && (
@@ -137,6 +132,25 @@ const DateField = ({ question, value, onChange, error, singlePage }: Props) => {
           )}
         </div>
       )}
+
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   )
 }

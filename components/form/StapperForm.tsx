@@ -162,6 +162,8 @@ const StapperForm = ({ form }: StapperFormProps) => {
       data: dataSource,
       partialSave: true,
     }
+    // return
+    return
     try {
       const res = await api.post<ActionResponse>(apiConstants.response.add(), payload);
       if (!res?.data?.success) {
@@ -399,7 +401,7 @@ const StapperForm = ({ form }: StapperFormProps) => {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <div className="py-8 px-4 sm:px-6 lg:px-8 min-h-full flex flex-col items-center justify-center">
+      <div className="min-h-full flex flex-col items-center justify-start pt-12 sm:pt-20 md:pt-28">
         <div className="max-w-2xl mx-auto w-full">
           <AnimatePresence mode="wait">
             {
@@ -433,12 +435,12 @@ const StapperForm = ({ form }: StapperFormProps) => {
                 >
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Step {currentStep + 1} of {totalSteps}
-                      </span>
-                      <span className="text-sm font-medium text-primary">
+                      <small className="text-sm font-medium text-muted-foreground">
+                        Que {currentStep + 1} of {totalSteps}
+                      </small>
+                      <small className="text-sm font-medium text-primary">
                         {Math.round(animatedProgress)}%
-                      </span>
+                      </small>
                     </div>
                     {/* <div className="bg-primary/20 w-full h-2.5 rounded-sm mb-4 relative overflow-hidden ">
               <div className="absolute inset-0 bg-primary transition-all duration-250 ease-out border-r-6 border-r-accent-bg" style={{ width: `${(currentStep / totalSteps) * 100}%` }}></div>
@@ -447,7 +449,7 @@ const StapperForm = ({ form }: StapperFormProps) => {
                   </div>
 
                   {/* Form Content */}
-                  <div className="relative h-auto min-h-[400px] mb-8">
+                  <div className="relative h-auto mb-8">
                     <AnimatePresence mode="popLayout" custom={direction} initial={false}>
                       <motion.div
                         key={currentStep}
@@ -474,10 +476,12 @@ const StapperForm = ({ form }: StapperFormProps) => {
                             <RenderFormField
                               key={currentQuestion.id}
                               question={currentQuestion}
-                              onChange={(v) => handleFieldChange(currentQuestion.id, v)}
-                              onNextQuestionTrigger={handleNext}
                               value={dataSource[currentQuestion.id]}
-                              error={errors[currentQuestion.id]}
+                              isFirstQuestion={isFirstStep}
+                              isLastQuestion={isLastStep}
+                              onChange={(v) => handleFieldChange(currentQuestion.id, v)}
+                              onNextQuestionTrigger={(dir: 1 | -1) => dir === 1 ? handleNext() : handlePrevious()}
+                              onFormSubmit={handleSubmit}
                             />}
                         </div>
                       </motion.div>
@@ -485,7 +489,7 @@ const StapperForm = ({ form }: StapperFormProps) => {
                   </div>
 
                   {/* Navigation Buttons */}
-                  <div className="flex items-center justify-between pt-6 border-t border-t-accent-foreground/10">
+                  {/* <div className="flex items-center justify-between pt-6 border-t border-t-accent-foreground/10 fixed w-full left-0 px-6 pb-12 bottom-0 bg-background pb-4">
                     <AnimatePresence mode="popLayout" initial={false}>
                       {
                         !isFirstStep ?
@@ -545,7 +549,7 @@ const StapperForm = ({ form }: StapperFormProps) => {
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </div>
+                  </div> */}
                 </motion.div>
             }
           </AnimatePresence>

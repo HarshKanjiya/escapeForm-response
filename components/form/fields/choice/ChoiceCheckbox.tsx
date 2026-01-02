@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -7,14 +8,15 @@ import { useEffect, useState } from 'react';
 interface Props {
   question: Question,
   value?: any,
-  error?: string[],
   singlePage?: boolean
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const ChoiceCheckbox = ({ question, value, onChange, error, singlePage }: Props) => {
+const ChoiceCheckbox = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
 
   const [selectedOptions, setSelectedOptions] = useState<string[]>(
     Array.isArray(value) ? value : []
@@ -49,7 +51,6 @@ const ChoiceCheckbox = ({ question, value, onChange, error, singlePage }: Props)
     onChange?.(newSelectedOptions);
   };
 
-  const hasError = error && error.length > 0;
 
   return (
     <div className="w-full space-y-4 p-2 pb-5">
@@ -138,12 +139,24 @@ const ChoiceCheckbox = ({ question, value, onChange, error, singlePage }: Props)
         </div>
       )}
 
-      {/* Error display */}
-      {hasError && (
-        <p className="text-sm text-destructive mt-2">
-          {error[0]}
-        </p>
-      )}
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   );
 }

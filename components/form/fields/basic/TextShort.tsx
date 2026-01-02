@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -8,12 +9,14 @@ interface Props {
   question: Question,
   value?: any,
   singlePage?: boolean
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const TextShort = ({ question, value, onChange, onNextQuestionTrigger }: Props) => {
+const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [answer, setAnswer] = useState("");
 
   const metadata = question.metadata || {};
@@ -27,14 +30,14 @@ const TextShort = ({ question, value, onChange, onNextQuestionTrigger }: Props) 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onNextQuestionTrigger?.();
+      onNextQuestionTrigger?.(1);
     }
   };
 
 
   return (
     <div
-      className='w-full space-y-2 p-2 pb-5'
+      className='w-full space-y-2 py-2 pb-5'
     >
       <div className="py-2">
         <Label
@@ -66,18 +69,18 @@ const TextShort = ({ question, value, onChange, onNextQuestionTrigger }: Props) 
           minLength={metadata.min as number || undefined}
           maxLength={metadata.max as number || undefined}
           pattern={metadata.pattern || undefined}
-          className={cn('border border-muted bg-white! py-6 px-4 text-xl!', metadata.max ? "pr-10" : "", "w-full")}
+          className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-2 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30', metadata.max ? "pr-10" : "", "w-full")}
         />
 
         {metadata.max && typeof metadata.max === 'number' && (
           <div className="flex justify-end absolute right-3 top-1/2 -translate-y-1/2">
-            <span className={cn(
+            <small className={cn(
               "text-sm text-muted-foreground",
-              answer.length > metadata.max * 0.9 && "text-orange-500",
+              answer.length > metadata.max && "text-orange-500",
               answer.length >= metadata.max && "text-destructive"
             )}>
               {answer.length} / {metadata.max}
-            </span>
+            </small>
           </div>
         )}
       </div>
@@ -92,6 +95,25 @@ const TextShort = ({ question, value, onChange, onNextQuestionTrigger }: Props) 
           )}
         </div>
       )}
+
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
@@ -7,14 +8,15 @@ import { useEffect, useState } from "react";
 interface Props {
   question: Question,
   value?: any,
-  error?: string[],
   singlePage?: boolean
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const ChoiceSingle = ({ question, value, onChange, error, singlePage }: Props) => {
+const ChoiceSingle = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>(value);
   const choices = question.options?.map(opt => opt.label) || [];
 
@@ -30,8 +32,6 @@ const ChoiceSingle = ({ question, value, onChange, error, singlePage }: Props) =
     setSelectedValue(choice);
     onChange?.(choice);
   };
-
-  const hasError = error && error.length > 0;
 
   return (
     <div className='w-full space-y-4 p-2 pb-5'>
@@ -134,11 +134,24 @@ const ChoiceSingle = ({ question, value, onChange, error, singlePage }: Props) =
         </p>
       )} */}
 
-      {hasError && (
-        <p className="text-sm text-destructive mt-2">
-          {error[0]}
-        </p>
-      )}
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   )
 }

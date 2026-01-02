@@ -20,7 +20,7 @@ interface Props {
   singlePage?: boolean
   onChange?: (value: any) => void,
   onError?: (errors: string[]) => void,
-  onNextQuestionTrigger?: () => void
+  onNextQuestionTrigger?: (dir: 1 | -1) => void,
 }
 
 const InfoUrl = ({ question, value, onChange, error, singlePage }: Props) => {
@@ -135,9 +135,7 @@ const InfoUrl = ({ question, value, onChange, error, singlePage }: Props) => {
   const hasError = validationError || (error && error.length > 0);
 
   return (
-    <div
-      className='w-full space-y-2 p-2 pb-5'
-    >
+    <div className='w-full space-y-2'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
