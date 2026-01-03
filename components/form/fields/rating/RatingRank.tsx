@@ -34,7 +34,7 @@ const RatingRank = ({ question, value, isLastQuestion, singlePage, isFirstQuesti
   };
 
   return (
-    <div className='w-full space-y-4 p-2 pb-5'>
+    <div className='w-full space-y-2 py-2 pb-5'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -56,7 +56,9 @@ const RatingRank = ({ question, value, isLastQuestion, singlePage, isFirstQuesti
 
       <div className="space-y-3">
         <Select value={selectedValue} onValueChange={handleValueChange}>
-          <SelectTrigger className="w-full max-w-xs">
+          <SelectTrigger className={cn(
+            "border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 w-40 shadow-none px-2",
+          )}>
             <SelectValue placeholder="Select a rating..." />
           </SelectTrigger>
           <SelectContent>

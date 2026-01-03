@@ -39,7 +39,7 @@ const RatingZeroToTen = ({ question, value, isLastQuestion, singlePage, isFirstQ
   };
 
   return (
-    <div className='w-full space-y-4 p-2 pb-5'>
+    <div className='w-full space-y-2 py-2 pb-5'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -60,7 +60,7 @@ const RatingZeroToTen = ({ question, value, isLastQuestion, singlePage, isFirstQ
       </div>
 
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-between">
           {ratings.map((rating) => {
             const isSelected = selectedValue === rating;
             return (
@@ -69,10 +69,10 @@ const RatingZeroToTen = ({ question, value, isLastQuestion, singlePage, isFirstQ
                 type="button"
                 onClick={() => handleSelect(rating)}
                 className={cn(
-                  "text-left px-4 py-3 rounded-lg border transition-all duration-200 aspect-square",
+                  "text-left px-4 py-3 flex-1 flex items-center justify-center rounded-md border transition-all duration-200 aspect-square",
                   isSelected
-                    ? "border-primary/50 bg-primary/5"
-                    : "border-border/40 hover:border-border/60 hover:bg-accent/5 cursor-pointer"
+                    ? "text-white border-primary/30 bg-primary"
+                    : "text-primary border-primary/30 bg-primary/10 hover:border-primary/60 hover:bg-primary/20 cursor-pointer"
                 )}
               >
                 {rating}

@@ -39,9 +39,28 @@ const RatingStar = ({ question, value, isLastQuestion, singlePage, isFirstQuesti
     onChange?.(rating);
   };
 
+  const handleStarClick = (star: number, isLeftHalf: boolean) => {
+    const rating = isLeftHalf ? star - 0.5 : star;
+    handleSelect(rating);
+  };
+
+  const handleStarHover = (star: number, isLeftHalf: boolean) => {
+    const rating = isLeftHalf ? star - 0.5 : star;
+    setHoverValue(rating);
+  };
+
+  const getStarFillState = (star: number) => {
+    const currentValue = hoverValue !== null ? hoverValue : selectedValue;
+    if (currentValue === undefined) return 'empty';
+
+    if (star <= Math.floor(currentValue)) return 'full';
+    if (star - 0.5 === currentValue) return 'half';
+    return 'empty';
+  };
+
 
   return (
-    <div className='w-full space-y-4 p-2 pb-5'>
+    <div className='w-full space-y-2 py-2 pb-5'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -67,26 +86,53 @@ const RatingStar = ({ question, value, isLastQuestion, singlePage, isFirstQuesti
           onMouseLeave={() => setHoverValue(null)}
         >
           {stars.map((star) => {
-            const isFilled = hoverValue !== null ? star <= hoverValue : selectedValue !== undefined && star <= selectedValue;
+            const fillState = getStarFillState(star);
 
             return (
-              <Button
-                variant={'ghost'}
+              <div
                 key={star}
-                type="button"
-                onClick={() => handleSelect(star)}
-                onMouseEnter={() => setHoverValue(star)}
-                className="rounded-full aspect-square! h-12"
+                className="relative"
               >
-                <StarIcon
-                  className={cn(
-                    "h-6! w-6! transition-all duration-200",
-                    isFilled
-                      ? "fill-primary text-primary"
-                      : "fill-none text-muted-foreground hover:text-primary"
+                <Button
+                  variant={'ghost'}
+                  type="button"
+                  className="rounded-full aspect-square! h-12 p-0 relative flex items-center justify-center"
+                >
+                  {/* Left half - for 0.5 rating */}
+                  <div
+                    className="absolute left-0 top-0 w-1/2 h-full z-10"
+                    onClick={() => handleStarClick(star, true)}
+                    onMouseEnter={() => handleStarHover(star, true)}
+                  />
+
+                  {/* Right half - for full rating */}
+                  <div
+                    className="absolute right-0 top-0 w-1/2 h-full z-10"
+                    onClick={() => handleStarClick(star, false)}
+                    onMouseEnter={() => handleStarHover(star, false)}
+                  />
+
+                  {/* Star icon background */}
+                  <StarIcon
+                    className={cn(
+                      "h-6! w-6! transition-all duration-200 pointer-events-none relative z-0",
+                      fillState === 'empty' && "fill-none text-primary/50",
+                      fillState === 'full' && "fill-primary text-primary",
+                      fillState === 'half' && "fill-none text-primary"
+                    )}
+                  />
+
+                  {/* Half-star overlay - filled 50% */}
+                  {fillState === 'half' && (
+                    <div
+                      className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center"
+                      style={{ clipPath: 'inset(0 50% 0 0)' }}
+                    >
+                      <StarIcon className="h-6 w-6 scale-125 fill-primary text-primary" />
+                    </div>
                   )}
-                />
-              </Button>
+                </Button>
+              </div>
             );
           })}
         </div>

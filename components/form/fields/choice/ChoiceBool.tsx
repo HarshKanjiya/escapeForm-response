@@ -17,7 +17,7 @@ interface Props {
 const ChoiceBool = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
 
   return (
-    <div className='w-full space-y-4 p-2 pb-5'>
+    <div className='w-full space-y-2 py-2 pb-5'>
       <div className="py-2">
         <Label
           htmlFor={question.id}

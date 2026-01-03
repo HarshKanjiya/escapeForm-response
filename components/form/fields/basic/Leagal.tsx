@@ -32,7 +32,7 @@ const Legal = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, o
   };
 
   return (
-    <div className='w-full space-y-4 p-2 pb-5'>
+    <div className='w-full space-y-2 py-2 pb-5'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -52,20 +52,26 @@ const Legal = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, o
       </div>
 
       <div className="flex flex-col gap-2">
-        <Button type="button" variant="ghost" className={cn(
-          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
-          selectedValue === true && "border-primary bg-primary/10"
-        )}
-          onClick={() => handleSelect(true)}>
-          <p>Accept</p>
-        </Button>
-        <Button type="button" variant="ghost" className={cn(
-          "bg-primary-50 justify-start border-primary-50 border-l-4 rounded-sm px-6 h-12 active:scale-100 hover:bg-primary/10 transition-[border,background] duration-300",
-          selectedValue === false && "border-primary bg-primary/10"
-        )}
-          onClick={() => handleSelect(false)}>
-          <p>Reject</p>
-        </Button>
+        <button
+          type="button"
+          onClick={() => onChange(true)}
+          className={cn(
+            "w-full flex px-4 py-3 text-primary border border-primary/10 bg-primary/5 rounded-lg max-sm:text-sm",
+            value === true
+              ? "border-primary/50 bg-primary/15"
+              : "hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
+          )}
+        >I Accept</button>
+        <button
+          type="button"
+          onClick={() => onChange(false)}
+          className={cn(
+            "w-full flex px-4 py-3 text-primary border border-primary/10 bg-primary/5 rounded-lg max-sm:text-sm",
+            value === false
+              ? "border-primary/50 bg-primary/15"
+              : "hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
+          )}
+        >I Do Not Accept</button>
       </div>
 
       <div className="flex w-full items-center justify-end pt-12 gap-4">
