@@ -89,6 +89,8 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
                     >
                         <Calendar
                             mode="single"
+                            captionLayout="dropdown"
+                            footer
                             selected={internalDate}
                             onSelect={handleDateSelect}
                             disabled={(date) => {
@@ -97,7 +99,6 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
                                 if (maxDate && date > maxDate) return true
                                 return false
                             }}
-                            initialFocus
                         />
                     </PopoverContent>
                 </Popover>

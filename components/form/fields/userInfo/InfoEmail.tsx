@@ -19,7 +19,8 @@ interface Props {
 
 const InfoEmail = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [answer, setAnswer] = useState(value || "");
-  const [validationError, setValidationError] = useState<string>("");
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   useEffect(() => {
     if (value) {
@@ -27,41 +28,76 @@ const InfoEmail = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
     }
   }, [value]);
 
-  const validateEmail = (email: string): string => {
-    if (!email) {
-      setValidationError("");
-      return "";
+  const validateEmail = (): boolean => {
+    setValidationError([]);
+
+    if (question.required && !answer) {
+      setValidationError(["This question is required"]);
+      return true;
     }
+
+    if (!answer) return false;
+
+    const errors: string[] = [];
 
     // Email validation regex
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    if (!emailPattern.test(email)) {
-      return "Please enter a valid email address";
+    if (!emailPattern.test(answer)) {
+      errors.push("Please enter a valid email address");
     }
 
-    return "";
+    setValidationError(errors);
+    return errors.length > 0;
+  };
+
+  const onNextClick = () => {
+    if (validateEmail()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  };
+
+  const onSubmitClick = () => {
+    if (validateEmail()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onNextQuestionTrigger?.(1);
+      if (isLastQuestion) {
+        onSubmitClick();
+      } else {
+        onNextClick();
+      }
     }
   };
-
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setAnswer(newValue);
 
-    const errorMsg = validateEmail(newValue);
-    setValidationError(errorMsg);
-
-    // Only call onChange if valid or empty
-    if (!errorMsg) {
-      onChange?.(newValue);
+    // Validate on change
+    if (newValue) {
+      const errors: string[] = [];
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(newValue)) {
+        errors.push("Please enter a valid email address");
+      }
+      setValidationError(errors);
+    } else {
+      setValidationError([]);
     }
+
+    // Call onChange for all values
+    onChange?.(newValue);
   };
 
   return (
@@ -103,10 +139,14 @@ const InfoEmail = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         </div>
       </div>
 
-      {validationError && (
-        <small className="text-destructive mt-1">
-          {validationError}
-        </small>
+      {validationError.length > 0 && (
+        <div className="space-y-1">
+          {validationError.map((error, index) => (
+            <small key={index} className="text-destructive mt-1">
+              {error}
+            </small>
+          ))}
+        </div>
       )}
 
       <div className="flex w-full items-center justify-end pt-12 gap-4">
@@ -119,10 +159,10 @@ const InfoEmail = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

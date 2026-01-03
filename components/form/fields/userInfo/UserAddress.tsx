@@ -114,7 +114,7 @@ const UserAddress = ({ question, value, onChange, error, singlePage }: Props) =>
   const countryRequired = metadata.countryRequired === true;
 
   return (
-    <div className='w-full space-y-2 py-2 pb-5'>
+    <div className='w-full space-y-2'>
       <div className="py-2">
         <Label
           htmlFor={question.id}

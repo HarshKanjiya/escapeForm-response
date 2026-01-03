@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from "@/types/common";
+import { useState } from "react";
 
 interface Props {
   question: Question,
@@ -16,19 +17,95 @@ interface Props {
 }
 
 const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   const metadata = question.metadata || {};
+
+  const validateField = (): boolean => {
+    setValidationError([]);
+
+    if (question.required && !value) {
+      setValidationError(["This question is required"]);
+      return true;
+    }
+
+    if (value) {
+      const errors: string[] = [];
+
+      if (metadata.min && typeof metadata.min === 'number' && value.length < metadata.min) {
+        errors.push(`Minimum ${metadata.min} characters required`);
+      }
+
+      if (metadata.max && typeof metadata.max === 'number' && value.length > metadata.max) {
+        errors.push(`Maximum ${metadata.max} characters allowed`);
+      }
+
+      if (metadata.pattern && !new RegExp(metadata.pattern as string).test(value)) {
+        errors.push("Please enter a valid format");
+      }
+
+      setValidationError(errors);
+      return errors.length > 0;
+    }
+
+    return false;
+  };
+
+  const onNextClick = () => {
+    if (validateField()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  };
+
+  const onSubmitClick = () => {
+    if (validateField()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange?.(newValue);
+
+    // Validate on change
+    if (newValue) {
+      const errors: string[] = [];
+
+      if (metadata.min && typeof metadata.min === 'number' && newValue.length < metadata.min) {
+        errors.push(`Minimum ${metadata.min} characters required`);
+      }
+
+      if (metadata.max && typeof metadata.max === 'number' && newValue.length > metadata.max) {
+        errors.push(`Maximum ${metadata.max} characters allowed`);
+      }
+
+      if (metadata.pattern && !new RegExp(metadata.pattern as string).test(newValue)) {
+        errors.push("Please enter a valid format");
+      }
+
+      setValidationError(errors);
+    } else {
+      setValidationError([]);
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onNextQuestionTrigger?.(1);
+      onNextClick();
     }
   };
 
 
   return (
-    <div className='w-full space-y-2 py-2 pb-5'>
+    <div className='w-full space-y-2'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -52,7 +129,7 @@ const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
           id={question.id}
           type="text"
           value={value || ""}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={question.placeholder || "Type your answer here..."}
           required={question.required}
@@ -75,6 +152,16 @@ const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         )}
       </div>
 
+      {validationError.length > 0 && (
+        <div className="space-y-1">
+          {validationError.map((error, index) => (
+            <p key={index} className="text-sm text-destructive mt-1">
+              {error}
+            </p>
+          ))}
+        </div>
+      )}
+
       {question.metadata && (
         <div className="text-xs text-muted-foreground space-y-1 pt-2">
           {question.metadata.min && typeof question.metadata.min === 'number' && (
@@ -96,10 +183,10 @@ const TextShort = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

@@ -18,6 +18,8 @@ interface Props {
 
 const ChoiceDropDown = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>(value);
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   const options = question.options?.filter((i) => i.label?.trim().length) || [];
 
@@ -30,6 +32,35 @@ const ChoiceDropDown = ({ question, value, isLastQuestion, singlePage, isFirstQu
   const handleValueChange = (newValue: string) => {
     setSelectedValue(newValue);
     onChange?.(newValue);
+  };
+
+  const validateField = (): boolean => {
+    setValidationError([]);
+
+    if (question.required && !selectedValue) {
+      setValidationError(["This question is required"]);
+      return true;
+    }
+
+    return false;
+  };
+
+  const onNextClick = () => {
+    if (validateField()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  };
+
+  const onSubmitClick = () => {
+    if (validateField()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
   };
 
 
@@ -81,6 +112,16 @@ const ChoiceDropDown = ({ question, value, isLastQuestion, singlePage, isFirstQu
         </SelectContent>
       </Select>
 
+      {validationError.length > 0 && (
+        <div className="space-y-1">
+          {validationError.map((error, index) => (
+            <p key={index} className="text-sm text-destructive mt-1">
+              {error}
+            </p>
+          ))}
+        </div>
+      )}
+
       <div className="flex w-full items-center justify-end pt-12 gap-4">
         {
           !isFirstQuestion && (
@@ -91,10 +132,10 @@ const ChoiceDropDown = ({ question, value, isLastQuestion, singlePage, isFirstQu
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

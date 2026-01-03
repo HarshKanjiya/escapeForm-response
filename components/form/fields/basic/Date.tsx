@@ -3,6 +3,7 @@ import { DatePicker } from "@/components/ui/datePicker";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
+import { CircleXIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Props {
@@ -20,8 +21,8 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
   const [selectedDate, setSelectedDate] = useState<globalThis.Date | undefined>(
     value ? new globalThis.Date(value) : undefined
   );
-  const [validationError, setValidationError] = useState<string>("");
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   const metadata = question.metadata || {};
   const minDate = metadata.min ? new globalThis.Date(metadata.min as string | number) : undefined;
@@ -30,53 +31,59 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
   useEffect(() => {
     if (value) {
       setSelectedDate(new globalThis.Date(value));
+      validateDate();
     }
   }, [value]);
 
-  const validateDate = (date: globalThis.Date | undefined): string => {
-    if (!date) {
-      setValidationError("");
-      return "";
+  const validateDate = (date?: globalThis.Date | undefined): boolean => {
+    setValidationError([]);
+    const temp = date || selectedDate;
+    if (question?.required && !temp) {
+      setValidationError(["This question is required"]);
+      return true;
     }
 
+    if (!temp) return false;
+    const err = []
     if (minDate && maxDate) {
-      if (date < minDate || date > maxDate) {
-        return `Date must be between ${minDate.toLocaleDateString()} and ${maxDate.toLocaleDateString()}`;
+      if (temp < minDate || temp > maxDate) {
+        err.push(`Date must be between ${minDate.toLocaleDateString()} and ${maxDate.toLocaleDateString()}`);
       }
     } else if (minDate) {
-      if (date < minDate) {
-        return `Date must be on or after ${minDate.toLocaleDateString()}`;
+      if (temp < minDate) {
+        err.push(`Date must be on or after ${minDate.toLocaleDateString()}`);
       }
     } else if (maxDate) {
-      if (date > maxDate) {
-        return `Date must be on or before ${maxDate.toLocaleDateString()}`;
+      if (temp > maxDate) {
+        err.push(`Date must be on or before ${maxDate.toLocaleDateString()}`);
       }
     }
-
-    return "";
+    setValidationError(err);
+    return err.length > 0;
   };
 
   const handleDateChange = (date: globalThis.Date | undefined) => {
+    if (validateDate(date)) return;
     setSelectedDate(date);
-
-    const errorMsg = validateDate(date);
-    setValidationError(errorMsg);
-
-    // Only call onChange if valid or undefined
-    if (!errorMsg) {
-      onChange?.(date?.toISOString());
-    }
+    onChange?.(date || null);
   };
 
-  const handleError = (): boolean => {
-
-    return true;
+  const onNextClick = () => {
+    if (validateDate()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
   }
 
-  const onNextClick = () => {
-    // setIsSubmitted(true);
-    // if (handleError()) return;
-    onNextQuestionTrigger?.(1);
+  const onSubmitClick = () => {
+    if (validateDate()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
   }
 
   return (
@@ -106,33 +113,33 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
       </div>
 
       <div className="space-y-1">
-        <DatePicker
-          value={selectedDate}
-          onChange={handleDateChange}
-          placeholder={question.placeholder || "Select a date"}
-          minDate={minDate}
-          maxDate={maxDate}
-          className={cn(
-            validationError && 'border-destructive',
-            singlePage ? "text-lg!" : "text-xl"
-          )}
-          triggerClass={cn(
-            'border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-1! text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 active:scale-none',
-            metadata.max ? "pr-10" : "", "w-full",
-            singlePage ? "text-lg!" : "text-xl"
-          )}
-        />
-
-        {validationError && (
-          <p className="text-sm text-destructive mt-1">
-            {validationError}
-          </p>
-        )}
-
+        <div className="w-full relative">
+          {
+            selectedDate && <Button size="icon" className="absolute -right-1.5 bottom-2 rounded-full bg-accent-bg" variant="ghost" onClick={() => handleDateChange(undefined)}>
+              <CircleXIcon className="text-muted-foreground" />
+            </Button>
+          }
+          <DatePicker
+            value={selectedDate}
+            onChange={handleDateChange}
+            placeholder={question.placeholder || "Select a date"}
+            minDate={minDate}
+            maxDate={maxDate}
+            className={cn(
+              validationError && 'border-destructive',
+              singlePage ? "text-lg!" : "text-xl"
+            )}
+            triggerClass={cn(
+              'border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-1! text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 active:scale-none',
+              metadata.max ? "pr-10" : "", "w-full",
+              singlePage ? "text-lg!" : "text-xl"
+            )}
+          />
+        </div>
       </div>
 
       {(minDate || maxDate) && (
-        <div className="text-xs text-muted-foreground space-y-1 pt-2">
+        <div className="text-xs text-muted-foreground space-y-1">
           {minDate && maxDate && (
             <p>Date must be between {minDate.toLocaleDateString()} and {maxDate.toLocaleDateString()}</p>
           )}
@@ -145,6 +152,12 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         </div>
       )}
 
+      {validationError?.map((error, index) => (
+        <small key={index} className="text-destructive mt-1">
+          {error}
+        </small>
+      ))}
+
       <div className="flex w-full items-center justify-end pt-12 gap-4">
         {
           !isFirstQuestion && (
@@ -155,10 +168,10 @@ const DateField = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={onNextClick}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

@@ -18,7 +18,8 @@ interface Props {
 
 const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [answer, setAnswer] = useState<string>(value?.toString() || "");
-  const [validationError, setValidationError] = useState<string>("");
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   const metadata = question.metadata || {};
   const min = typeof metadata.min === 'number' ? metadata.min : undefined;
@@ -30,32 +31,39 @@ const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuest
     }
   }, [value]);
 
-  const validateNumber = (val: string): string => {
-    if (!val) {
-      setValidationError("");
-      return "";
+  const validateNumber = (): boolean => {
+    setValidationError([]);
+
+    if (question.required && !answer) {
+      setValidationError(["This question is required"]);
+      return true;
     }
-    const numValue = parseFloat(val);
+
+    if (!answer) return false;
+
+    const numValue = parseFloat(answer);
+    const errors: string[] = [];
 
     if (isNaN(numValue)) {
-      return "Please enter a valid number";
+      errors.push("Please enter a valid number");
+    } else {
+      if (min !== undefined && max !== undefined) {
+        if (numValue < min || numValue > max) {
+          errors.push(`Value must be between ${min} and ${max}`);
+        }
+      } else if (min !== undefined) {
+        if (numValue < min) {
+          errors.push(`Value must be at least ${min}`);
+        }
+      } else if (max !== undefined) {
+        if (numValue > max) {
+          errors.push(`Value must be at most ${max}`);
+        }
+      }
     }
 
-    if (min !== undefined && max !== undefined) {
-      if (numValue < min || numValue > max) {
-        return `Value must be between ${min} and ${max}`;
-      }
-    } else if (min !== undefined) {
-      if (numValue < min) {
-        return `Value must be at least ${min}`;
-      }
-    } else if (max !== undefined) {
-      if (numValue > max) {
-        return `Value must be at most ${max}`;
-      }
-    }
-
-    return "";
+    setValidationError(errors);
+    return errors.length > 0;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,12 +73,39 @@ const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuest
     if (val === '' || val === '-' || /^-?\d*\.?\d*$/.test(val)) {
       setAnswer(val);
 
-      const errorMsg = validateNumber(val);
-      setValidationError(errorMsg);
+      // Validate on change
+      if (val && val !== '-' && val !== '.') {
+        const numValue = parseFloat(val);
+        const errors: string[] = [];
+
+        if (isNaN(numValue)) {
+          errors.push("Please enter a valid number");
+        } else {
+          if (min !== undefined && max !== undefined) {
+            if (numValue < min || numValue > max) {
+              errors.push(`Value must be between ${min} and ${max}`);
+            }
+          } else if (min !== undefined) {
+            if (numValue < min) {
+              errors.push(`Value must be at least ${min}`);
+            }
+          } else if (max !== undefined) {
+            if (numValue > max) {
+              errors.push(`Value must be at most ${max}`);
+            }
+          }
+        }
+        setValidationError(errors);
+      } else {
+        setValidationError([]);
+      }
 
       // Only call onChange with valid complete numbers
-      if (val && !errorMsg && val !== '-' && val !== '.' && !val.endsWith('.')) {
-        onChange?.(parseFloat(val));
+      if (val && val !== '-' && val !== '.' && !val.endsWith('.')) {
+        const numValue = parseFloat(val);
+        if (!isNaN(numValue)) {
+          onChange?.(numValue);
+        }
       } else if (!val) {
         onChange?.(undefined);
       }
@@ -80,9 +115,26 @@ const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuest
   const handleBlur = () => {
     // Validate on blur
     if (answer) {
-      const errorMsg = validateNumber(answer);
-      setValidationError(errorMsg);
+      validateNumber();
     }
+  };
+
+  const onNextClick = () => {
+    if (validateNumber()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  };
+
+  const onSubmitClick = () => {
+    if (validateNumber()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
   };
 
   return (
@@ -130,10 +182,14 @@ const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuest
           )}
         </div>
 
-        {validationError && (
-          <small className="text-sm text-destructive mt-1">
-            {validationError}
-          </small>
+        {validationError.length > 0 && (
+          <div className="space-y-1">
+            {validationError.map((error, index) => (
+              <small key={index} className="text-sm text-destructive mt-1">
+                {error}
+              </small>
+            ))}
+          </div>
         )}
       </div>
 
@@ -147,10 +203,10 @@ const NumberField = ({ question, value, isLastQuestion, singlePage, isFirstQuest
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

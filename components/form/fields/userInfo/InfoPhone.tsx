@@ -31,7 +31,8 @@ const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
 
   const [selectedCountry, setSelectedCountry] = useState(availableCountries[0]?.code || "US");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [validationError, setValidationError] = useState<string>("");
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   useEffect(() => {
     if (value && typeof value === 'string') {
@@ -49,26 +50,33 @@ const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
     }
   }, [value]);
 
-  const validatePhoneNumber = (number: string): string => {
-    if (!number) {
-      setValidationError("");
-      return "";
+  const validatePhoneNumber = (): boolean => {
+    setValidationError([]);
+
+    if (question.required && !phoneNumber) {
+      setValidationError(["This question is required"]);
+      return true;
     }
+
+    if (!phoneNumber) return false;
+
+    const errors: string[] = [];
 
     // Basic phone number validation (digits and common symbols)
     const phonePattern = /^[\d\s()+-]+$/;
 
-    if (!phonePattern.test(number)) {
-      return "Please enter a valid phone number";
+    if (!phonePattern.test(phoneNumber)) {
+      errors.push("Please enter a valid phone number");
+    } else {
+      // Check minimum length
+      const digitsOnly = phoneNumber.replace(/\D/g, '');
+      if (digitsOnly.length < 6) {
+        errors.push("Phone number is too short");
+      }
     }
 
-    // Check minimum length
-    const digitsOnly = number.replace(/\D/g, '');
-    if (digitsOnly.length < 6) {
-      return "Phone number is too short";
-    }
-
-    return "";
+    setValidationError(errors);
+    return errors.length > 0;
   };
 
   const handleCountryChange = (countryCode: string) => {
@@ -80,12 +88,25 @@ const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
     const newNumber = e.target.value;
     setPhoneNumber(newNumber);
 
-    const errorMsg = validatePhoneNumber(newNumber);
-    setValidationError(errorMsg);
+    // Validate on change
+    if (newNumber) {
+      const errors: string[] = [];
+      const phonePattern = /^[\d\s()+-]+$/;
 
-    if (!errorMsg) {
-      updateValue(selectedCountry, newNumber);
+      if (!phonePattern.test(newNumber)) {
+        errors.push("Please enter a valid phone number");
+      } else {
+        const digitsOnly = newNumber.replace(/\D/g, '');
+        if (digitsOnly.length > 0 && digitsOnly.length < 6) {
+          errors.push("Phone number is too short");
+        }
+      }
+      setValidationError(errors);
+    } else {
+      setValidationError([]);
     }
+
+    updateValue(selectedCountry, newNumber);
   };
 
   const updateValue = (countryCode: string, number: string) => {
@@ -103,7 +124,26 @@ const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
   };
 
   const selectedCountryData = COUNTRIES.find(c => c.code === selectedCountry);
-  const hasError = validationError;
+
+  const onNextClick = () => {
+    if (validatePhoneNumber()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  };
+
+  const onSubmitClick = () => {
+    if (validatePhoneNumber()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
+  };
+
+  const hasError = validationError.length > 0;
 
   return (
     <div className='w-full space-y-2'>
@@ -174,10 +214,14 @@ const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         </div>
       </div>
 
-      {validationError && (
-        <p className="text-sm text-destructive mt-1">
-          {validationError}
-        </p>
+      {validationError.length > 0 && (
+        <div className="space-y-1">
+          {validationError.map((error, index) => (
+            <p key={index} className="text-sm text-destructive mt-1">
+              {error}
+            </p>
+          ))}
+        </div>
       )}
 
       {!hasError && !allowAnyCountry && allowedCountries && allowedCountries.length > 0 && (
@@ -196,10 +240,10 @@ const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestio
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

@@ -28,9 +28,10 @@ interface Props {
 
 const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [answer, setAnswer] = useState(value || "");
-  const [validationError, setValidationError] = useState<string>("");
+  const [validationError, setValidationError] = useState<string[]>([]);
   const [urlPreview, setUrlPreview] = useState<UrlPreviewData | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
   const [previewError, setPreviewError] = useState(false);
 
   const metadata = question.metadata || {};
@@ -41,31 +42,37 @@ const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion,
     }
   }, [value]);
 
-  const validateUrl = (url: string): string => {
-    if (!url) {
-      setValidationError("");
-      return "";
+  const validateUrl = (): boolean => {
+    setValidationError([]);
+
+    if (question.required && !answer) {
+      setValidationError(["This question is required"]);
+      return true;
     }
+
+    if (!answer) return false;
+
+    const errors: string[] = [];
 
     // URL validation pattern
     const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
 
-    if (!urlPattern.test(url)) {
-      return "Please enter a valid URL format";
+    if (!urlPattern.test(answer)) {
+      errors.push("Please enter a valid URL format");
+    } else {
+      // Additional validation: try to create URL object
+      try {
+        const urlToTest = answer.startsWith('http://') || answer.startsWith('https://')
+          ? answer
+          : `https://${answer}`;
+        new URL(urlToTest);
+      } catch {
+        errors.push("Please enter a valid URL format");
+      }
     }
 
-    // Additional validation: try to create URL object
-    try {
-      // Add protocol if missing for validation
-      const urlToTest = url.startsWith('http://') || url.startsWith('https://')
-        ? url
-        : `https://${url}`;
-      new URL(urlToTest);
-    } catch {
-      return "Please enter a valid URL format";
-    }
-
-    return "";
+    setValidationError(errors);
+    return errors.length > 0;
   };
 
   const fetchUrlPreview = async (url: string) => {
@@ -108,8 +115,7 @@ const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion,
   // Debounced fetch - only called when user stops typing for 500ms
   const debouncedFetchPreview = useRef(
     debounce((url: string) => {
-      const errorMsg = validateUrl(url);
-      if (!errorMsg && url) {
+      if (url) {
         fetchUrlPreview(url);
       }
     }, 500)
@@ -126,24 +132,38 @@ const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion,
     const newValue = e.target.value;
     setAnswer(newValue);
 
-    const errorMsg = validateUrl(newValue);
-    setValidationError(errorMsg);
-
-    // Clear preview if input is cleared or invalid
-    if (!newValue || errorMsg) {
+    // Clear preview if input is cleared
+    if (!newValue) {
       setUrlPreview(null);
       setPreviewError(false);
-      debouncedFetchPreview.cancel(); // Cancel pending debounced call
+      debouncedFetchPreview.cancel();
+      setValidationError([]);
+    } else {
+      // Validate on change
+      const errors: string[] = [];
+      const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
+
+      if (!urlPattern.test(newValue)) {
+        errors.push("Please enter a valid URL format");
+      } else {
+        try {
+          const urlToTest = newValue.startsWith('http://') || newValue.startsWith('https://')
+            ? newValue
+            : `https://${newValue}`;
+          new URL(urlToTest);
+        } catch {
+          errors.push("Please enter a valid URL format");
+        }
+      }
+      setValidationError(errors);
     }
 
-    // Only call onChange if valid or empty
-    if (!errorMsg) {
-      onChange?.(newValue);
+    // Call onChange for all values
+    onChange?.(newValue);
 
-      // Fetch preview for valid URLs with debounce
-      if (newValue) {
-        debouncedFetchPreview(newValue);
-      }
+    // Fetch preview for valid URLs with debounce
+    if (newValue) {
+      debouncedFetchPreview(newValue);
     }
   };
 
@@ -156,9 +176,31 @@ const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion,
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onNextQuestionTrigger?.(1);
+      if (isLastQuestion) {
+        onSubmitClick();
+      } else {
+        onNextClick();
+      }
     }
   };
+
+  const onNextClick = () => {
+    if (validateUrl()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  }
+
+  const onSubmitClick = () => {
+    if (validateUrl()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
+  }
 
   return (
     <div className='w-full space-y-2'>
@@ -218,10 +260,14 @@ const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion,
         )}
       </div>
 
-      {validationError && (
-        <p className="text-sm text-destructive mt-1">
-          {validationError}
-        </p>
+      {validationError.length > 0 && (
+        <div className="space-y-1">
+          {validationError.map((error, index) => (
+            <p key={index} className="text-sm text-destructive mt-1">
+              {error}
+            </p>
+          ))}
+        </div>
       )}
 
       {/* URL Preview */}
@@ -310,10 +356,10 @@ const InfoUrl = ({ question, value, isLastQuestion, singlePage, isFirstQuestion,
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }

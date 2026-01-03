@@ -22,6 +22,8 @@ const ChoiceMultiple = ({ question, value, isLastQuestion, singlePage, isFirstQu
 
   const [selectedValues, setSelectedValues] = useState<string[]>(Array.isArray(value) ? value : []);
   const [options, setOptions] = useState<QuestionOption[]>([]);
+  const [validationError, setValidationError] = useState<string[]>([]);
+  const [shouldShake, setShouldShake] = useState<boolean>(false);
 
   const metadata = question.metadata || {};
   const minSelections = typeof metadata.min === 'number' ? metadata.min : undefined;
@@ -61,8 +63,46 @@ const ChoiceMultiple = ({ question, value, isLastQuestion, singlePage, isFirstQu
     onChange?.(newValues);
   };
 
+  const validateField = (): boolean => {
+    setValidationError([]);
+    const errors: string[] = [];
+
+    if (question.required && selectedValues.length === 0) {
+      errors.push("This question is required");
+    }
+
+    if (minSelections && selectedValues.length < minSelections) {
+      errors.push(`Please select at least ${minSelections} option${minSelections > 1 ? 's' : ''}`);
+    }
+
+    if (maxSelections && selectedValues.length > maxSelections) {
+      errors.push(`Please select no more than ${maxSelections} option${maxSelections > 1 ? 's' : ''}`);
+    }
+
+    setValidationError(errors);
+    return errors.length > 0;
+  };
+
+  const onNextClick = () => {
+    if (validateField()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onNextQuestionTrigger?.(1);
+  };
+
+  const onSubmitClick = () => {
+    if (validateField()) {
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      return;
+    }
+    onFormSubmit?.();
+  };
+
   return (
-    <div className='w-full space-y-2 py-2 pb-5'>
+    <div className='w-full space-y-2'>
       <div className="py-2">
         <Label
           htmlFor={question.id}
@@ -123,6 +163,16 @@ const ChoiceMultiple = ({ question, value, isLastQuestion, singlePage, isFirstQu
         </div>
       )}
 
+      {validationError.length > 0 && (
+        <div className="space-y-1">
+          {validationError.map((error, index) => (
+            <p key={index} className="text-sm text-destructive mt-1">
+              {error}
+            </p>
+          ))}
+        </div>
+      )}
+
       <div className="flex w-full items-center justify-end pt-12 gap-4">
         {
           !isFirstQuestion && (
@@ -133,10 +183,10 @@ const ChoiceMultiple = ({ question, value, isLastQuestion, singlePage, isFirstQu
         }
         {
           isLastQuestion ?
-            <Button size="xl" onClick={() => onFormSubmit?.()}>
+            <Button size="xl" onClick={onSubmitClick} className={cn(shouldShake && "animate-shake")}>
               Submit
             </Button> :
-            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+            <Button size="xl" onClick={onNextClick} className={cn(shouldShake && "animate-shake")}>
               Next
             </Button>
         }
