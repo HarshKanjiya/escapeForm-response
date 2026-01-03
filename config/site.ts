@@ -1,7 +1,7 @@
 export const SITE_INFO = {
     name: "Escape form",
     url: process.env.APP_URL || "https://escform.com",
-    ogImage: 'https://assets.harshkanjiya.com/general/tweetr-card.png',
+    ogImage: 'https://assets.harshkanjiya.com/esc-form/escform-img.png',
     description: "Welcome back to escForm. Log in securely to manage your forms, view submission data, and collaborate with your team",
     keywords: "escape form, esc form, esc form sign in, escape form sign in, form builder, online forms, form management, data collection, surveys, team collaboration",
 };

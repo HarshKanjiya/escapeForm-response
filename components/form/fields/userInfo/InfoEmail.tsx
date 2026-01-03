@@ -4,18 +4,20 @@ import { cn } from "@/lib/utils";
 import { Question } from '@/types/common';
 import { useState, useEffect } from "react";
 import { MailIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   question: Question,
   value?: any,
-  error?: string[],
   singlePage?: boolean
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
   onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const InfoEmail = ({ question, value, onChange, error, singlePage }: Props) => {
+const InfoEmail = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const [answer, setAnswer] = useState(value || "");
   const [validationError, setValidationError] = useState<string>("");
 
@@ -41,6 +43,14 @@ const InfoEmail = ({ question, value, onChange, error, singlePage }: Props) => {
     return "";
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onNextQuestionTrigger?.(1);
+    }
+  };
+
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setAnswer(newValue);
@@ -53,8 +63,6 @@ const InfoEmail = ({ question, value, onChange, error, singlePage }: Props) => {
       onChange?.(newValue);
     }
   };
-
-  const hasError = validationError || (error && error.length > 0);
 
   return (
     <div className='w-full space-y-2'>
@@ -87,33 +95,38 @@ const InfoEmail = ({ question, value, onChange, error, singlePage }: Props) => {
             type="email"
             value={answer}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             placeholder={question.placeholder || "example@email.com"}
             required={question.required}
-            className={cn(
-              'border border-muted bg-white! py-6 pl-11 pr-4 text-lg w-full',
-              hasError && 'border-destructive'
-            )}
+            className={cn('border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-0 pl-12 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30')}
           />
         </div>
       </div>
 
       {validationError && (
-        <p className="text-sm text-destructive mt-1">
+        <small className="text-destructive mt-1">
           {validationError}
-        </p>
+        </small>
       )}
 
-      {error && error.length > 0 && !validationError && (
-        <p className="text-sm text-destructive mt-1">
-          {error[0]}
-        </p>
-      )}
-
-      {!hasError && (
-        <div className="text-xs text-muted-foreground pt-2">
-          <p>Enter a valid email address (e.g., user@example.com)</p>
-        </div>
-      )}
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   )
 }

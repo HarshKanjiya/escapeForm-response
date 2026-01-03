@@ -6,18 +6,20 @@ import { Question } from '@/types/common';
 import { useState, useEffect } from "react";
 import { PhoneIcon } from "lucide-react";
 import { COUNTRIES } from "@/constants/common";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   question: Question,
   value?: any,
-  error?: string[],
   singlePage?: boolean
+  isFirstQuestion?: boolean,
+  isLastQuestion?: boolean,
   onChange?: (value: any) => void,
-  onError?: (errors: string[]) => void,
   onNextQuestionTrigger?: (dir: 1 | -1) => void,
+  onFormSubmit?: () => void
 }
 
-const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
+const InfoPhone = ({ question, value, isLastQuestion, singlePage, isFirstQuestion, onChange, onNextQuestionTrigger, onFormSubmit }: Props) => {
   const metadata = question.metadata || {};
   const allowAnyCountry = metadata.allowAnyCountry !== false;
   const allowedCountries = metadata.allowedCountries as string[] | undefined;
@@ -101,7 +103,7 @@ const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
   };
 
   const selectedCountryData = COUNTRIES.find(c => c.code === selectedCountry);
-  const hasError = validationError || (error && error.length > 0);
+  const hasError = validationError;
 
   return (
     <div className='w-full space-y-2'>
@@ -128,7 +130,7 @@ const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
         <div className="flex gap-2">
           {/* Country Code Select */}
           <Select value={selectedCountry} onValueChange={handleCountryChange}>
-            <SelectTrigger className="w-[140px] py-6">
+            <SelectTrigger className="w-[140px] border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30 shadow-none px-0 pr-2">
               <SelectValue>
                 {selectedCountryData && (
                   <div className="flex items-center gap-2">
@@ -142,9 +144,9 @@ const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
               {availableCountries.map((country) => (
                 <SelectItem key={country.code} value={country.code}>
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{country.flag}</span>
                     <span className="text-sm font-medium">{country.dialCode}</span>
-                    <span className="text-sm text-muted-foreground">{country.name}</span>
+                    <span className="text-lg">{country.flag}</span>
+                    {/* <span className="text-sm text-muted-foreground">{country.name}</span> */}
                   </div>
                 </SelectItem>
               ))}
@@ -164,7 +166,7 @@ const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
               placeholder={question.placeholder || "555 123 4567"}
               required={question.required}
               className={cn(
-                'border border-muted bg-white! py-6 pl-11 pr-4 text-lg w-full',
+                'border-x-0 border-t-0 rounded-none border-b! bg-transparent! py-6 px-0 pl-12 text-xl! outline-none! active:outline-none! ring-0! border-b-muted-foreground/20 active:border-b-primary transition-[border-color] duration-200 placeholder:text-primary/30',
                 hasError && 'border-destructive'
               )}
             />
@@ -178,17 +180,30 @@ const InfoPhone = ({ question, value, onChange, error, singlePage }: Props) => {
         </p>
       )}
 
-      {error && error.length > 0 && !validationError && (
-        <p className="text-sm text-destructive mt-1">
-          {error[0]}
-        </p>
-      )}
-
       {!hasError && !allowAnyCountry && allowedCountries && allowedCountries.length > 0 && (
         <div className="text-xs text-muted-foreground pt-2">
           <p>Only {allowedCountries.join(', ')} country codes allowed</p>
         </div>
       )}
+
+      <div className="flex w-full items-center justify-end pt-12 gap-4">
+        {
+          !isFirstQuestion && (
+            <Button size="xl" variant="secondary" className="border border-border/40" onClick={() => onNextQuestionTrigger?.(-1)}>
+              Back
+            </Button>
+          )
+        }
+        {
+          isLastQuestion ?
+            <Button size="xl" onClick={() => onFormSubmit?.()}>
+              Submit
+            </Button> :
+            <Button size="xl" onClick={() => onNextQuestionTrigger?.(1)}>
+              Next
+            </Button>
+        }
+      </div>
     </div>
   )
 }
