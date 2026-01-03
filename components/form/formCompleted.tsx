@@ -91,7 +91,7 @@ const FormCompleted = ({ formConfig, onRestart }: FormCompletedProps) => {
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <Button size='lg' variant='secondary' className='ring-2 ring-offset-2 ring-border/20 flex items-center gap-3 font-normal'>
+                        <Button size='lg' variant='secondary' className='ring-2 ring-offset-2 ring-border/20 flex items-center gap-3 font-normal hover:scale-[1.03]'>
                             Create your own form
                             <SquareArrowOutUpRightIcon className='h-4 w-4' />
                         </Button>

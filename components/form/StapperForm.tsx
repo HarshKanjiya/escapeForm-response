@@ -160,7 +160,7 @@ const StapperForm = ({ form }: StapperFormProps) => {
       partialSave: true,
     }
     // return
-    return
+
     try {
       const res = await api.post<ActionResponse>(apiConstants.response.add(), payload);
       if (!res?.data?.success) {
@@ -301,24 +301,17 @@ const StapperForm = ({ form }: StapperFormProps) => {
   };
 
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key == 'Enter' && !event.ctrlKey && !event.shiftKey && !isLastStep) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        handleNext();
-      }
-      else if (event.key === 'ArrowLeft' && event.ctrlKey) {
-        event.preventDefault();
-        handlePrevious();
-      } else if (event.key === 'ArrowRight' && event.ctrlKey) {
-        event.preventDefault();
-        handleNext();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep, isLastStep]);
+  // useEffect(() => {
+  //   const handleKeyDown = (event: KeyboardEvent) => {
+  //     if (event.key == 'Enter' && !event.ctrlKey && !event.shiftKey && !isLastStep) {
+  //       event.preventDefault();
+  //       event.stopImmediatePropagation();
+  //       handleNext();
+  //     }
+  //   };
+  //   document.addEventListener('keydown', handleKeyDown);
+  //   return () => document.removeEventListener('keydown', handleKeyDown);
+  // }, [currentStep, isLastStep]);
 
 
 
