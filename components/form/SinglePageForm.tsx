@@ -251,7 +251,6 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
           question={endScreen}
           onChange={handleEndScreenNext}
           value={undefined}
-          error={undefined}
           onReset={form.multipleSubmissions ? handleResetForm : undefined}
         />
       </div>
@@ -363,7 +362,6 @@ const SinglePageForm = ({ form }: SinglePageFormProps) => {
                           question={q}
                           onChange={(v) => handleFieldChange(q.id, v)}
                           value={dataSource[q.id]}
-                          error={errors[q.id]}
                           singlePage={true}
                         />
                       </div>
